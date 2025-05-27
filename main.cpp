@@ -1,14 +1,12 @@
 //
 // Created by aoweichen on 2025/5/27.
 //
+#define GLOG_USE_GLOG_EXPORT
+#include <glog/logging.h>
+#include <gtest/gtest.h>
 
-#include <openblas/cblas.h>  // 或完整路径 #include "include/cblas.h"
-#include <iostream>
-
-int main() {
-    double x[] = {1.0, 2.0, 3.0};
-    double y[] = {4.0, 5.0, 6.0};
-    double dot = cblas_ddot(3, x, 1, y, 1);
-    std::cout << "Dot product: " << dot << std::endl;
+int main(int argc, char *argv[]) {
+    google::InitGoogleLogging(argv[0]);
+    LOG(INFO) << "This is an info message";
     return 0;
 }

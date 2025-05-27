@@ -15,32 +15,12 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/include)
 
 add_library(cnnx_static STATIC main.cpp)
+target_link_libraries(cnnx_static PRIVATE
+        ${PROJECT_SOURCE_DIR}/third_party/library/openblas/libopenblas.a
+)
 set_target_properties(cnnx_static PROPERTIES OUTPUT_NAME "cnnx_static")
 
-
-add_library(cnnx_shared SHARED main.cpp)
-set_target_properties(cnnx_shared PROPERTIES
-        OUTPUT_NAME "cnnx_shared"
-        VERSION 1.0.0
-        SOVERSION 1
-)
-
 add_executable(cnnx main.cpp)
-
-## 链接库到可执行文件（这里以静态库为例）
-#target_link_libraries(myapp PRIVATE
-#        mylib_static          # 链接静态库
-#        # 或链接动态库：mylib_shared
-#)
-#
-## --------------------------------------------
-## 安装规则（可选，执行 make install 时生效）
-## --------------------------------------------
-#install(TARGETS mylib_static mylib_shared myapp
-#        ARCHIVE DESTINATION lib   # 静态库安装路径
-#        LIBRARY DESTINATION lib   # 动态库安装路径
-#        RUNTIME DESTINATION bin   # 可执行文件安装路径
-#)
-#
-## 安装头文件（可选）
-#install(DIRECTORY include/ DESTINATION include)
+target_link_libraries(cnnx PRIVATE
+        ${PROJECT_SOURCE_DIR}/third_party/library/openblas/libopenblas.a
+)

@@ -11,7 +11,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/library/runtime)
 
 
 # 添加头文件目录（假设头文件在 include 文件夹）
-include_directories(include)
+include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/third_party/include)
 
 add_library(cnnx_static STATIC main.cpp)
 set_target_properties(cnnx_static PROPERTIES OUTPUT_NAME "cnnx_static")

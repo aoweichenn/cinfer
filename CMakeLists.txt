@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.20)
 
 # 定义项目基本信息：项目名称为cnnx，版本1.0.0，使用C++语言
 project(cnnx VERSION 1.0.0 LANGUAGES CXX)
+# 添加预定宏
+add_compile_definitions(GLOG_USE_GLOG_EXPORT)
 
 # 设置C++标准为C++17
 set(CMAKE_CXX_STANDARD 17)

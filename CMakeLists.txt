@@ -29,7 +29,8 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # 创建名为cnnx_static的静态库，源文件为main.cpp
 add_library(cnnx_static STATIC main.cpp
         include/runtime/pnnx/ir.hpp
-        include/runtime/pnnx/storezip.hpp)
+        include/runtime/pnnx/storezip.hpp
+        source/runtime/pnnx/storezip.cpp)
 # 为静态库链接依赖项：
 target_link_libraries(cnnx_static PRIVATE
         pthread  # POSIX线程库
@@ -46,7 +47,8 @@ set_target_properties(cnnx_static PROPERTIES OUTPUT_NAME "cnnx_static")
 # 创建名为cnnx的可执行文件，源文件为main.cpp
 add_executable(cnnx main.cpp
         include/runtime/pnnx/ir.hpp
-        include/runtime/pnnx/storezip.hpp)
+        include/runtime/pnnx/storezip.hpp
+        source/runtime/pnnx/storezip.cpp)
 # 为可执行文件链接依赖项（与静态库相同）
 target_link_libraries(cnnx PRIVATE
         pthread

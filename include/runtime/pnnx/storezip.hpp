@@ -80,6 +80,16 @@ namespace pnnx {
 
         ~StoreZipReader();
 
+        int open(const std::string &path);
+
+        [[nodiscard]] std::vector<std::string> get_names() const;
+
+        [[nodiscard]] uint64_t get_file_size(const std::string &name) const;
+
+        int read_file(const std::string &name, char *data);
+
+        void close();
+
     private:
         FILE *fp;
         std::map<std::string, StoreZipMetaOfReader> filemetas;

@@ -311,7 +311,7 @@ namespace pnnx {
             fwrite(reinterpret_cast<char *>(&signature), sizeof(signature), 1, this->fp);
 
             zip64_end_of_central_directory_locator eocdl64{
-                .eocdr64_disk_number = 0, .eocdr63_offset = static_cast<uint64_t>(offset2)(offset2), .disk_count = 1
+                .eocdr64_disk_number = 0, .eocdr63_offset = static_cast<uint64_t>(offset2), .disk_count = 1
             };
             fwrite(reinterpret_cast<char *>(&eocdl64), sizeof(eocdl64), 1, this->fp);
         } {

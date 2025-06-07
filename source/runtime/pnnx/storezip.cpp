@@ -265,7 +265,7 @@ namespace pnnx {
     }
 
     int StoreZipWriter::close() {
-        if (!this->fp) return 0;
+        if (!this->fp) return -1;
 
         const long offset1 = ftell(this->fp);
         for (const StoreZipMetaOfWriter &szmow: this->filemetas) {
@@ -363,7 +363,7 @@ namespace pnnx {
         fwrite(reinterpret_cast<char *>(&lfh), sizeof(lfh), 1, this->fp);
         fwrite(const_cast<char *>(name.c_str()), name.size(), 1, this->fp);
 
-        fwrite(reinterpret_cast<char *>(&extra_id), name.size(), 1, this->fp);
+        fwrite(reinterpret_cast<char *>(&extra_id), sizeof(extra_id), 1, this->fp);
         fwrite(reinterpret_cast<char *>(&extra_size), sizeof(extra_size), 1, this->fp);
         fwrite(reinterpret_cast<char *>(&zip64_eef), sizeof(zip64_eef), 1, this->fp);
 

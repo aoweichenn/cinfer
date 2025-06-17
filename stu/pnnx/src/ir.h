@@ -129,6 +129,7 @@ public:
             ai.push_back((int)_l);
         }
     }
+
     Parameter(const std::initializer_list<float>& _af)
         : type(6), af(_af)
     {
@@ -149,6 +150,7 @@ public:
         for (const auto& x : _af)
             af.push_back((float)x);
     }
+
     Parameter(const std::initializer_list<const char*>& _as)
         : type(7)
     {
@@ -163,6 +165,7 @@ public:
         : type(7), as(_as)
     {
     }
+
     Parameter(const std::complex<float>& _c)
         : type(10), c(_c)
     {
@@ -171,6 +174,7 @@ public:
         : type(10), c(_c)
     {
     }
+
     Parameter(const std::initializer_list<std::complex<float> >& _ac)
         : type(11), ac(_ac)
     {

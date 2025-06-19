@@ -27,7 +27,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # 构建静态库配置：
 # 创建名为cnnx_static的静态库，源文件为main.cpp
-add_library(cnnx_static STATIC main.cpp
+add_library(cnnx_static STATIC
         include/runtime/pnnx/ir.hpp
         include/runtime/pnnx/storezip.hpp
         source/runtime/pnnx/storezip.cpp

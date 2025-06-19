@@ -30,12 +30,14 @@ namespace pnnx
         if (value[0] == '(' || value[0] == '[')
         {
             std::string list_char = value.substr(1, value.size() - 2);
-
         }
-
     }
+
     std::string Parameter::encode_to_string(const Parameter& param)
     {
+    }
 
+    bool operator==(const Parameter& lhs, const Parameter& rhs)
+    {
     }
 }

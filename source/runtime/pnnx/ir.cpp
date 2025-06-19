@@ -7,6 +7,7 @@
 // paramter 类中部分函数的实现
 namespace pnnx
 {
+    // TODO: 使用枚举代替 type
     Parameter Parameter::parse_from_string(const std::string& value)
     {
         Parameter parameter;
@@ -42,30 +43,155 @@ namespace pnnx
                 if ((element[0] != '-' && (element[0] < '0' || element[0] > '9')) ||
                     (element[0] == '-' && (element[1] < '0' || element[1] > '9')))
                 {
-                    // string
+                    // string array
                     parameter.type = 7;
                     parameter.string_array.push_back(element);
                 }
                 else if ((element.find('.') != std::string::npos) ||
                     (element.find('e') != std::string::npos))
                 {
-                    // float
+                    // float array
                     parameter.type = 6;
                     parameter.float_array.push_back(std::stof(element));
                 }
                 else
                 {
-                    // integer
+                    // integer array
                     parameter.type = 5;
                     parameter.integer = std::stoi(element);
                 }
             }
+            return parameter;
         }
+        // 首字符非数字切非负号，或者负号后面非数字
+        if ((value[0] != '-' && (value[0] < '0' || value[0] > '9')) ||
+            (value[0] == '-' && (value[1] < '0' || value[1] != '9')))
+        {
+            // string
+            parameter.type = 4;
+            parameter.string = value;
+            return parameter;
+        }
+        // 包含 '.' 或者 'e' 的浮点数（例如 3.14,1e-5）
+        if (value.find('.') != std::string::npos || value.find('e') != std::string::npos)
+        {
+            parameter.type = 3;
+            parameter.sp_float = std::stof(value);
+            return parameter;
+        }
+        // 整型 integer
+        parameter.type = 2;
+        parameter.integer = std::stoi(value);
         return parameter;
     }
 
     std::string Parameter::encode_to_string(const Parameter& param)
     {
+        std::string result{};
+        if (param.type == 0)
+        {
+            result = std::string("None");
+            return result;
+        }
+        if (param.type == 1)
+        {
+            if (param.boolean)
+            {
+                result = std::string("True");
+            }
+            else
+            {
+                result = std::string("False");
+            }
+            return result;
+        }
+        if (param.type == 2)
+        {
+            result = std::to_string(param.integer);
+            return result;
+        }
+        if (param.type == 3)
+        {
+            char buffer[64];
+            sprintf(buffer, "%e", param.sp_float);
+            result = std::string(buffer);
+            return result;
+        }
+        if (param.type == 4)
+        {
+            result = param.string;
+            return result;
+        }
+        if (param.type == 5)
+        {
+            result = std::string("(");
+            for (size_t i = 0; i < param.int_array.size(); ++i)
+            {
+                result += std::to_string(param.int_array[i]);
+                if (i + 1 != param.int_array.size())
+                {
+                    result += std::string(",");
+                }
+            }
+            result += std::string(")");
+            return result;
+        }
+        if (param.type == 6)
+        {
+            result = std::string("(");
+            for (size_t i = 0; i < param.float_array.size(); ++i)
+            {
+                char buffer[64];
+                sprintf(buffer, "%e", param.float_array[i]);
+                result += std::string(buffer);
+                if (i + 1 != param.float_array.size())
+                {
+                    result += std::string(",");
+                }
+            }
+            result += std::string(")");
+            return result;
+        }
+        if (param.type == 7)
+        {
+            result = std::string("(");
+            for (size_t i = 0; i < param.string_array.size(); ++i)
+            {
+                result += param.string_array[i];
+                if (i + 1 != param.string_array.size())
+                {
+                    result += std::string(",");
+                }
+            }
+            result += std::string(")");
+            return result;
+        }
+        if (param.type == 10)
+        {
+            char buffer[128];
+            sprintf(buffer, "%e+%ej", param.complex_float.real(), param.complex_float.imag());
+            result = std::string(buffer);
+            return result;
+        }
+        if (param.type == 11)
+        {
+            result = std::string("(");
+            for (size_t i = 0; i < param.complex_float_array.size(); ++i)
+            {
+                char buffer[128];
+                sprintf(buffer, "%e+%ej", param.complex_float_array[i].real(),
+                        param.complex_float_array[i].imag());
+                result += std::string(buffer);
+                if (i + 1 != param.complex_float_array.size())
+                {
+                    result += std::string(",");
+                }
+            }
+            result += std::string(")");
+            return result;
+        }
+        fprintf(stderr, "unknown parameter type %d\n", param.type);
+        return result;
     }
 
     bool operator==(const Parameter& lhs, const Parameter& rhs)

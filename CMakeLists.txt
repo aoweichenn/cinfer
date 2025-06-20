@@ -30,9 +30,10 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 add_library(cnnx_static STATIC
         include/runtime/pnnx/ir.hpp
         include/runtime/pnnx/storezip.hpp
-        source/runtime/pnnx/storezip.cpp
+        source/utils/storezip.cpp
         source/runtime/pnnx/ir.cpp
-        include/utils/fp16_converter.hpp)
+        include/utils/fp16_converter.hpp
+        source/utils/fp16_converter.cpp)
 # 为静态库链接依赖项：
 target_link_libraries(cnnx_static PRIVATE
         pthread  # POSIX线程库
@@ -50,9 +51,10 @@ set_target_properties(cnnx_static PROPERTIES OUTPUT_NAME "cnnx_static")
 add_executable(cnnx main.cpp
         include/runtime/pnnx/ir.hpp
         include/runtime/pnnx/storezip.hpp
-        source/runtime/pnnx/storezip.cpp
+        source/utils/storezip.cpp
         source/runtime/pnnx/ir.cpp
-        include/utils/fp16_converter.hpp)
+        include/utils/fp16_converter.hpp
+        source/utils/fp16_converter.cpp)
 # 为可执行文件链接依赖项（与静态库相同）
 target_link_libraries(cnnx PRIVATE
         pthread

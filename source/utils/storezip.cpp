@@ -296,6 +296,7 @@ namespace pnnx
     }
 }
 
+// StoreZipWriter
 namespace pnnx
 {
     StoreZipWriter::StoreZipWriter()

@@ -2,7 +2,126 @@
 // Created by aowei on 25-6-18.
 //
 
+#include <cstring>
 #include <runtime/pnnx/ir.hpp>
+
+// 辅助静态函数
+namespace pnnx
+{
+    // 这个函数不是指的 parameter 里面的 type
+    static bool type_is_integer(const int type)
+    {
+        if (type == 1) return false;
+        if (type == 2) return false;
+        if (type == 3) return false;
+        if (type == 4) return true;
+        if (type == 5) return true;
+        if (type == 6) return true;
+        if (type == 7) return true;
+        if (type == 8) return true;
+        if (type == 9) return true;
+        if (type == 10) return false;
+        if (type == 11) return false;
+        if (type == 12) return false;
+        if (type == 13) return false;
+        return false;
+    }
+
+    // 对应本地命名的类型字符串
+    static const char* type_to_string(const int type)
+    {
+        if (type == 1) return "f32";
+        if (type == 2) return "f64";
+        if (type == 3) return "f16";
+        if (type == 4) return "i32";
+        if (type == 5) return "i64";
+        if (type == 6) return "i16";
+        if (type == 7) return "i8";
+        if (type == 8) return "u8";
+        if (type == 9) return "bool";
+        if (type == 10) return "c64";
+        if (type == 11) return "c128";
+        if (type == 12) return "c32";
+        if (type == 13) return "bf16";
+        return "null";
+    }
+
+    // 对应 numpy 里面的类型字符串
+    static const char* type_to_numpy_string(const int type)
+    {
+        if (type == 1) return "float32";
+        if (type == 2) return "float64";
+        if (type == 3) return "float16";
+        if (type == 4) return "int32";
+        if (type == 5) return "int64";
+        if (type == 6) return "int16";
+        if (type == 7) return "int8";
+        if (type == 8) return "uint8";
+        if (type == 9) return "bool";
+        if (type == 10) return "csingle";
+        if (type == 11) return "cdouble";
+        if (type == 12) return "chalf";
+        if (type == 13) return "bfloat16";
+        return "null";
+    }
+
+    // 对应 torch 里面的类型字符串
+    static const char* type_to_dtype_string(const int type)
+    {
+        if (type == 1) return "torch.float";
+        if (type == 2) return "torch.double";
+        if (type == 3) return "torch.half";
+        if (type == 4) return "torch.int";
+        if (type == 5) return "torch.long";
+        if (type == 6) return "torch.short";
+        if (type == 7) return "torch.int8";
+        if (type == 8) return "torch.uint8";
+        if (type == 9) return "torch.bool";
+        if (type == 10) return "torch.complex64";
+        if (type == 11) return "torch.complex128";
+        if (type == 12) return "torch.complex32";
+        if (type == 13) return "torch.bfloat16";
+        return "null";
+    }
+
+    // 返回对应类型的所占用的字节数
+    static size_t type_to_elemsize(const int type)
+    {
+        if (type == 1) return 4;
+        if (type == 2) return 8;
+        if (type == 3) return 2;
+        if (type == 4) return 4;
+        if (type == 5) return 8;
+        if (type == 6) return 2;
+        if (type == 7) return 1;
+        if (type == 8) return 1;
+        if (type == 9) return 1;
+        if (type == 10) return 8;
+        if (type == 11) return 16;
+        if (type == 12) return 4;
+        if (type == 13) return 2;
+        return 0; // null
+    }
+
+    // 把自定义的类型字符串转为 type 值
+    static int string_to_type(const char* s)
+    {
+        if (strcmp(s, "f32") == 0) return 1;
+        if (strcmp(s, "f64") == 0) return 2;
+        if (strcmp(s, "f16") == 0) return 3;
+        if (strcmp(s, "i32") == 0) return 4;
+        if (strcmp(s, "i64") == 0) return 5;
+        if (strcmp(s, "i16") == 0) return 6;
+        if (strcmp(s, "i8") == 0) return 7;
+        if (strcmp(s, "u8") == 0) return 8;
+        if (strcmp(s, "bool") == 0) return 9;
+        if (strcmp(s, "c64") == 0) return 10;
+        if (strcmp(s, "c128") == 0) return 11;
+        if (strcmp(s, "c32") == 0) return 12;
+        if (strcmp(s, "bf16") == 0) return 13;
+        return 0; // null
+    }
+}
 
 // paramter 类中部分函数的实现
 namespace pnnx

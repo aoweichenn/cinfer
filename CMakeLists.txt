@@ -31,6 +31,7 @@ add_library(cnnx_static STATIC
         include/runtime/cnnx/utils/storezip.hpp
         source/runtime/pnnx/utils/storezip.cpp
         include/runtime/cnnx/utils/fp16_converter.hpp
+        source/runtime/pnnx/utils/fp16_converter.cpp
         include/runtime/cnnx/ir/parameter.hpp
         source/runtime/pnnx/ir/parameter.cpp
         include/runtime/cnnx/ir/attribute.hpp
@@ -59,6 +60,7 @@ add_executable(cnnx main.cpp
         include/runtime/cnnx/utils/storezip.hpp
         source/runtime/pnnx/utils/storezip.cpp
         include/runtime/cnnx/utils/fp16_converter.hpp
+        source/runtime/pnnx/utils/fp16_converter.cpp
         include/runtime/cnnx/ir/parameter.hpp
         source/runtime/pnnx/ir/parameter.cpp
         include/runtime/cnnx/ir/attribute.hpp

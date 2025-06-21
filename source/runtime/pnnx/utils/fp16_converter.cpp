@@ -3,7 +3,6 @@
 //
 
 #include <runtime/cnnx/utils/fp16_converter.hpp>
-#include <cstdint>
 
 namespace cnnx
 {

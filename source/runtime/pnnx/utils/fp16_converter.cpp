@@ -2,10 +2,10 @@
 // Created by aowei on 25-6-20.
 //
 
-#include <utils/fp16_converter.hpp>
+#include <runtime/cnnx/utils/fp16_converter.hpp>
 #include <cstdint>
 
-namespace pnnx
+namespace cnnx
 {
     // 由于 cpp 内部标准并不支持 fp16，所以需要手动将 fp32 转为 fp16
     unsigned short float32_to_float16(const float fp32)

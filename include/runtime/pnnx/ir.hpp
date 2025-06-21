@@ -299,4 +299,35 @@ namespace pnnx
     };
 }
 
+// Operator 类声明，操作符
+namespace pnnx
+{
+    class Operator
+    {
+    public:
+        Operator();
+        bool has_param(const std::string& key) const;
+        bool has_attr(const std::string& key) const;
+        bool has_input(const std::string& key) const;
+
+        Operand* named_input(const std::string& key);
+        const Operand* named_input(const std::string& key) const;
+
+    public:
+        std::vector<Operand*> inputs;
+        std::vector<Operand*> outputs;
+        std::vector<std::string> input_names;
+        std::map<std::string, Parameter> params;
+        std::map<std::string, Attribute> attrs;
+
+        // keep std::string typed member the last for cross cxxabi compatibility
+        std::string type;
+        std::string name;
+
+    private:
+        friend class Graph;
+    };
+}
+
+
 #endif //PNNX_IR_HPP

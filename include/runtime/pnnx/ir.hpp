@@ -306,7 +306,7 @@ namespace pnnx
     class Operator
     {
     public:
-        Operator();
+        Operator() = default;
         bool has_param(const std::string& key) const;
         bool has_attr(const std::string& key) const;
         bool has_input(const std::string& key) const;
@@ -330,5 +330,21 @@ namespace pnnx
     };
 }
 
+// Graph 类声明
+namespace pnnx
+{
+    class Graph
+    {
+    public:
+
+    public:
+        std::vector<Operator*> operators;
+        std::vector<Operand*> operands;
+
+    private:
+        Graph(const Graph& rhs);
+        Graph& operator =(const Graph& rhs);
+    };
+}
 
 #endif //PNNX_IR_HPP

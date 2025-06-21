@@ -3,9 +3,9 @@
 //
 
 #include <cstring>
+#include <algorithm>
 #include <runtime/pnnx/ir.hpp>
-
-#include "utils/fp16_converter.hpp"
+#include <utils/fp16_converter.hpp>
 
 // 辅助静态函数
 namespace pnnx
@@ -501,5 +501,19 @@ namespace pnnx
         // vector 的比较方式是值比较，先比较 vec 大小，再遍历元素比较
         if (lhs.data != rhs.data) return false;
         return true;
+    }
+}
+
+// Operand 类中函数的实现
+namespace pnnx
+{
+    // 移除 operand 中对应的 consumer_operator
+    void Operand::remove_consumer(const Operator& consumer_operator)
+    {
+        const auto it = std::find(this->consumers.begin(), this->consumers.end(), consumer_operator);
+        if (it != this->consumers.end())
+        {
+            this->consumers.erase(it);
+        }
     }
 }

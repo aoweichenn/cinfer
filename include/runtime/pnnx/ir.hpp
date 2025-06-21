@@ -270,4 +270,33 @@ namespace pnnx
     Attribute operator+(const Attribute& lhs, const Attribute& rhs);
 }
 
+// Operand 类声明，操作数
+// TODO: 分析设计思路
+namespace pnnx
+{
+    class Operator;
+
+    class Operand
+    {
+    public:
+        Operator* producer{};
+        std::vector<Operator*> consumers{};
+        std::vector<int> shape{};
+        std::map<std::string, Parameter> params{};
+        int type;
+        // keep std::string typed member the last for cross cxxabi compatibility
+        std::string name;
+
+    public:
+        void remove_consumer(const Operator& consumer_operator);
+
+    private:
+        friend class Graph;
+
+        Operand(): type(0)
+        {
+        }
+    };
+}
+
 #endif //PNNX_IR_HPP

@@ -5,7 +5,7 @@
 #include <cstring>
 #include <filesystem>
 #include <iostream>
-
+#include <algorithm>
 #include <runtime/cnnx/ir/graph.hpp>
 #include <runtime/cnnx/utils/storezip.hpp>
 
@@ -272,14 +272,152 @@ namespace cnnx
             iss >> operator_count >> operand_count;
         }
 
-        for (int i = 0; i < operator_count; i++)
+        // 逐行解析 param 里面的参数结构
+        // 详细的结构信息在之后的文档里面给出
+        for (int i = 0; i < operator_count; ++i)
         {
             std::string line;
             std::getline(ifs, line);
             std::istringstream iss(line);
 
             std::string type;
+            std::string name;
+            int input_count = 0;
+            int output_count = 0;
+            iss >> type >> name >> input_count >> output_count;
+
+            // TODO: 分析和注释这个代码
+            Operator* op = this->new_operator(type, name);
+            for (int j = 0; j < input_count; ++j)
+            {
+                std::string operand_name;
+                iss >> operand_name;
+                Operand* operand = this->get_operand(operand_name);
+                operand->consumers.push_back(op);
+                op->inputs.push_back(operand);
+            }
+            // TODO: 分析和注释这个代码
+            for (int j = 0; j < output_count; ++j)
+            {
+                std::string operand_name;
+                iss >> operand_name;
+                Operand* opd = this->new_operand(operand_name);
+                opd->consumers.push_back(op);
+                op->outputs.push_back(opd);
+            }
+
+            // key = value
+            while (!iss.eof())
+            {
+                std::string param;
+                iss >> param;
+
+                std::string key;
+                std::string value;
+                std::istringstream pss(param);
+                std::getline(pss, key, '=');
+                std::getline(pss, value);
+
+                // 解析 param
+                if (key[0] == '@')
+                {
+                    // attribute
+                    load_attribute(op, key.substr(1), value, szr);
+                }
+                else if (key[0] == '$')
+                {
+                    // operand input key
+                    load_input_key(op, key.substr(1), value);
+                }
+                else if (key[0] == '#')
+                {
+                    // operand shape
+                    load_shape(op, key.substr(1), value);
+                }
+                else
+                {
+                    // parameter
+                    load_parameter(op, key, value);
+                }
+            }
         }
         return 0;
+    }
+}
+
+// 创建运算数和运算符
+namespace cnnx
+{
+    // 创建一个新的运算符,用函数参数赋值这个运算符的 type 和 name
+    // 返回运算符的指针
+    Operator* Graph::new_operator(const std::string& type, const std::string& name)
+    {
+        Operator* op = new Operator;
+        op->type = type;
+        op->name = name;
+        this->operators.push_back(op);
+        return op;
+    }
+
+    // 在 current_operator 前创建一个新的运算符,用函数参数赋值这个运算符的 type 和 name
+    // 返回运算符的指针
+    Operator* Graph::new_operator_before(const std::string& type, const std::string& name,
+                                         const Operator* current_operator)
+    {
+        Operator* op = new Operator;
+        op->type = type;
+        op->name = name;
+        const auto pos = std::find(this->operators.begin(), this->operators.end(), current_operator);
+        this->operators.insert(pos, op);
+        return op;
+    }
+
+    // 在 current_operator 后创建一个新的运算符,用函数参数赋值这个运算符的 type 和 name
+    // 返回运算符的指针
+    Operator* Graph::new_operator_after(const std::string& type, const std::string& name,
+                                        const Operator* current_operator)
+    {
+        Operator* op = new Operator;
+        op->type = type;
+        op->name = name;
+        const auto pos = std::find(this->operators.begin(), this->operators.end(), current_operator) + 1;
+        this->operators.insert(pos, op);
+        return op;
+    }
+
+    // 创建一个新的运算数,用函数参数赋值这个运算数的 type 和 name
+    // 返回运算数的指针
+    Operand* Graph::new_operand(const std::string& name)
+    {
+        Operand* opd = new Operand;
+        opd->name = name;
+        this->operands.push_back(opd);
+        return opd;
+    }
+
+    // 遍历获取名为 name 的 operand 对象
+    Operand* Graph::get_operand(const std::string& name)
+    {
+        for (const auto opd : this->operands)
+        {
+            if (opd->name == name)
+            {
+                return opd;
+            }
+        }
+        return nullptr;
+    }
+
+    // 遍历获取名为 name 的 operand 对象
+    const Operand* Graph::get_operand(const std::string& name) const
+    {
+        for (const auto opd : this->operands)
+        {
+            if (opd->name == name)
+            {
+                return opd;
+            }
+        }
+        return nullptr;
     }
 }

@@ -1,7 +1,11 @@
 //
 // Created by aowei on 25-6-21.
 //
+#include <fstream>
 #include <cstring>
+#include <filesystem>
+#include <iostream>
+
 #include <runtime/cnnx/ir/graph.hpp>
 #include <runtime/cnnx/utils/storezip.hpp>
 
@@ -193,7 +197,7 @@ namespace cnnx
     }
 }
 
-// graph 类实现
+// graph 类初始化构造和赋值的实现部分
 namespace cnnx
 {
     // 默认构造函数
@@ -222,5 +226,60 @@ namespace cnnx
     Graph& Graph::operator=(const Graph& /*rhs*/)
     {
         return *this;
+    }
+}
+
+// graph 类加载和解析参数的实现部分
+namespace cnnx
+{
+    // 加载参数文件
+    int Graph::load(const std::string& param_path, const std::string& bin_path)
+    {
+        // 文件流，用于以二进制的形式读取文件里面的数据
+        std::ifstream ifs(param_path, std::ios::in | std::ios::binary);
+        // 打开 param 文件失败
+        if (!ifs.good())
+        {
+            fprintf(stderr, "open file %s failed\n", param_path.c_str());
+            return -1;
+        }
+
+        StoreZipReader szr{};
+        // 打开 bin 文件失败
+        if (szr.open(bin_path) != 0)
+        {
+            fprintf(stderr, "open file %s failed\n", bin_path.c_str());
+            return -1;
+        }
+
+        // TODO:分析代码
+        // param 文件的第一个参数是模型参数的数量
+        {
+            int magic = 0;
+            std::string line;
+            std::getline(ifs, line);
+            std::istringstream iss(line);
+            iss >> magic;
+        }
+        int operator_count = 0;
+        int operand_count = 0;
+        // 获取 param 文件里面的第二行，其数据代表着
+        // 运算符的数量，运算数的数量
+        {
+            std::string line;
+            std::getline(ifs, line);
+            std::istringstream iss(line);
+            iss >> operator_count >> operand_count;
+        }
+
+        for (int i = 0; i < operator_count; i++)
+        {
+            std::string line;
+            std::getline(ifs, line);
+            std::istringstream iss(line);
+
+            std::string type;
+        }
+        return 0;
     }
 }

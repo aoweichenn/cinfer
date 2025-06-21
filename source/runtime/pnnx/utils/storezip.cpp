@@ -53,7 +53,7 @@ namespace cnnx
         uint16_t file_comment_length;
         uint16_t start_disk;
         uint16_t internal_file_attrs;
-        uint16_t external_file_attrs;
+        uint32_t external_file_attrs;
         uint32_t lfh_offset;
         });
 

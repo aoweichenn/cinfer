@@ -232,6 +232,7 @@ namespace cnnx
 // graph 类加载和解析参数的实现部分
 namespace cnnx
 {
+    // TODO: 内存泄漏?
     // 加载参数文件
     int Graph::load(const std::string& param_path, const std::string& bin_path)
     {
@@ -262,10 +263,10 @@ namespace cnnx
             iss >> magic;
         }
         int operator_count = 0;
-        int operand_count = 0;
         // 获取 param 文件里面的第二行，其数据代表着
         // 运算符的数量，运算数的数量
         {
+            int operand_count = 0;
             std::string line;
             std::getline(ifs, line);
             std::istringstream iss(line);
@@ -301,8 +302,9 @@ namespace cnnx
             {
                 std::string operand_name;
                 iss >> operand_name;
+
                 Operand* opd = this->new_operand(operand_name);
-                opd->consumers.push_back(op);
+                opd->producer = op;
                 op->outputs.push_back(opd);
             }
 
@@ -343,9 +345,53 @@ namespace cnnx
         }
         return 0;
     }
+
+    // TODO: 分析这个代码
+    // 保存参数文件
+    int Graph::save(const std::string& param_path, const std::string& bin_path)
+    {
+        FILE* param_fp = fopen(param_path.c_str(), "wb");
+        if (!param_fp)
+        {
+            fprintf(stderr, "fopen file %s failed\n", param_path.c_str());
+            return -1;
+        }
+
+        StoreZipWriter szw;
+        if (szw.open(bin_path) != 0)
+        {
+            fprintf(stderr, "open file %s failed\n", bin_path.c_str());
+            return -1;
+        }
+
+        // 写入魔数
+        fprintf(param_fp, "7767517\n");
+
+        // 写入 op count 和 oprand count
+        fprintf(param_fp, "%d %d\n", static_cast<int>(this->operators.size()), static_cast<int>(this->operands.size()));
+
+        for (const Operator* op : this->operators)
+        {
+            fprintf(param_fp, "%-24s %-24s %d %d\n", op->type.c_str(), op->name.c_str(),
+                    static_cast<int>(op->inputs.size()), static_cast<int>(op->outputs.size()));
+            for (const Operand* operand : op->inputs)
+            {
+                fprintf(param_fp, " %s", operand->name.c_str());
+            }
+        }
+
+        fclose(param_fp);
+        return 0;
+    }
+
+    int Graph::parse(const std::string& param)
+    {
+        return 0;
+    }
 }
 
 // 创建运算数和运算符
+// TODO: 内存泄漏?
 namespace cnnx
 {
     // 创建一个新的运算符,用函数参数赋值这个运算符的 type 和 name

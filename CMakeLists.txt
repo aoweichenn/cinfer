@@ -41,7 +41,8 @@ add_library(cnnx_static STATIC
         source/runtime/pnnx/ir/attribute.cpp
         source/runtime/pnnx/ir/operand.cpp
         source/runtime/pnnx/ir/operator.cpp
-        source/runtime/pnnx/ir/graph.cpp)
+        source/runtime/pnnx/ir/graph.cpp
+        stu/pnnx/src/ir.cpp)
 # 为静态库链接依赖项：
 target_link_libraries(cnnx_static PRIVATE
         pthread  # POSIX线程库
@@ -70,7 +71,8 @@ add_executable(cnnx main.cpp
         source/runtime/pnnx/ir/attribute.cpp
         source/runtime/pnnx/ir/operand.cpp
         source/runtime/pnnx/ir/operator.cpp
-        source/runtime/pnnx/ir/graph.cpp)
+        source/runtime/pnnx/ir/graph.cpp
+        stu/pnnx/src/ir.cpp)
 # 为可执行文件链接依赖项（与静态库相同）
 target_link_libraries(cnnx PRIVATE
         pthread

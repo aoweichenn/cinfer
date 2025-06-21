@@ -7,12 +7,11 @@
 
 #include <climits>
 #include <complex>
-#include <map>
 #include <utility>
 #include <vector>
 
 // parameter 类声明
-namespace pnnx
+namespace cnnx
 {
     class Parameter
     {

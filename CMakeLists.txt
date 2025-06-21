@@ -36,7 +36,10 @@ add_library(cnnx_static STATIC
         source/utils/fp16_converter.cpp
         include/runtime/cnnx/ir/parameter.hpp
         source/runtime/pnnx/ir/parameter.cpp
-        include/runtime/cnnx/ir/attribute.hpp)
+        include/runtime/cnnx/ir/attribute.hpp
+        include/runtime/cnnx/ir/operand.hpp
+        include/runtime/cnnx/ir/operator.hpp
+        include/runtime/cnnx/ir/graph.hpp)
 # 为静态库链接依赖项：
 target_link_libraries(cnnx_static PRIVATE
         pthread  # POSIX线程库
@@ -60,7 +63,10 @@ add_executable(cnnx main.cpp
         source/utils/fp16_converter.cpp
         include/runtime/cnnx/ir/parameter.hpp
         source/runtime/pnnx/ir/parameter.cpp
-        include/runtime/cnnx/ir/attribute.hpp)
+        include/runtime/cnnx/ir/attribute.hpp
+        include/runtime/cnnx/ir/operand.hpp
+        include/runtime/cnnx/ir/operator.hpp
+        include/runtime/cnnx/ir/graph.hpp)
 # 为可执行文件链接依赖项（与静态库相同）
 target_link_libraries(cnnx PRIVATE
         pthread

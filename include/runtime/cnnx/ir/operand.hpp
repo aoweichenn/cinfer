@@ -27,7 +27,7 @@ namespace cnnx
         std::string name;
 
     public:
-        void remove_consumer(const Operator& consumer_operator);
+        void remove_consumer(const Operator* consumer_operator);
 
     private:
         friend class Graph;

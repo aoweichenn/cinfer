@@ -25,8 +25,8 @@ namespace cnnx
     // 判断是否有某个 input
     bool Operator::has_input(const std::string& key) const
     {
-        const auto it = std::find(this->inputs.begin(), this->inputs.end(), key);
-        return it != this->inputs.end();
+        const auto it = std::find(this->input_names.begin(), this->input_names.end(), key);
+        return it != this->input_names.end();
     }
 
     // 如果有对应的 input name，就返回对应的操作数

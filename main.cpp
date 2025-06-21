@@ -3,8 +3,9 @@
 //
 
 #include <cstdint>
-#include <include/runtime/cnnx/utils/storezip.hpp>
-using namespace pnnx;
+#include <runtime/cnnx/utils/storezip.hpp>
+
+using namespace cnnx;
 using namespace std;
 
 int main(int argc, char* argv[])

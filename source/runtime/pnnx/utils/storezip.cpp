@@ -3,7 +3,7 @@
 //
 
 
-#include <runtime/cnnx/storezip.hpp>
+#include <runtime/cnnx/utils/storezip.hpp>
 
 
 namespace pnnx
@@ -15,7 +15,8 @@ namespace pnnx
 #endif
 }
 
-namespace pnnx
+// datastructure
+namespace cnnx
 {
     PACK(struct local_file_header {
         uint16_t version;
@@ -85,7 +86,8 @@ namespace pnnx
         });
 }
 
-namespace pnnx
+// CRC32
+namespace cnnx
 {
     static uint32_t CRC32_TABLE[256];
 
@@ -118,7 +120,8 @@ namespace pnnx
     }
 }
 
-namespace pnnx
+// StoreZipReader
+namespace cnnx
 {
     StoreZipReader::StoreZipReader()
     {
@@ -297,7 +300,7 @@ namespace pnnx
 }
 
 // StoreZipWriter
-namespace pnnx
+namespace cnnx
 {
     StoreZipWriter::StoreZipWriter()
     {

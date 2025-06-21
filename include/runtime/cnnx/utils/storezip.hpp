@@ -2,14 +2,15 @@
 // Created by aoweichen on 2025/5/28.
 //
 
-#ifndef STOREZIP_HPP
-#define STOREZIP_HPP
+#ifndef CNNX_IR_STOREZIP_HPP
+#define CNNX_IR_STOREZIP_HPP
 #include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
 
-namespace pnnx {
+namespace cnnx
+{
     /**
      * @brief ZIP文件读取器元数据结构体（本地文件头核心字段）
      *
@@ -33,7 +34,8 @@ namespace pnnx {
      * 3. 大小限制：当size超过0xFFFFFFFF时，必须使用ZIP64扩展格式解析
      * 4. 验证机制：需通过中央目录记录(CDR)验证偏移量的有效性
      */
-    struct StoreZipMetaOfReader {
+    struct StoreZipMetaOfReader
+    {
         uint64_t offset; ///< 文件内容数据在ZIP中的绝对偏移量（单位：字节）
         uint64_t size; ///< 压缩后的文件大小（单位：字节），注意与原始大小的区别
     };
@@ -65,7 +67,8 @@ namespace pnnx {
      * 4. CRC32验证：应在文件内容写入时实时计算，避免内存数据篡改
      * 5. 大小限制：当size超过0xFFFFFFFF时，必须触发ZIP64扩展机制
      */
-    struct StoreZipMetaOfWriter {
+    struct StoreZipMetaOfWriter
+    {
         std::string name; ///< 文件条目名称（UTF-8编码），最大长度不超过65535字节
         uint64_t lfh_offset; ///< 本地文件头(Local File Header)的绝对偏移量（单位：字节）
         uint32_t crc32; ///< 文件内容的CRC32校验码（采用IEEE 802.3多项式计算）
@@ -73,46 +76,50 @@ namespace pnnx {
     };
 }
 
-namespace pnnx {
-    class StoreZipReader {
+namespace cnnx
+{
+    class StoreZipReader
+    {
     public:
         StoreZipReader();
 
         ~StoreZipReader();
 
-        int open(const std::string &path);
+        int open(const std::string& path);
 
         [[nodiscard]] std::vector<std::string> get_names() const;
 
-        [[nodiscard]] uint64_t get_file_size(const std::string &name) const;
+        [[nodiscard]] uint64_t get_file_size(const std::string& name) const;
 
-        int read_file(const std::string &name, char *data);
+        int read_file(const std::string& name, char* data);
 
         void close();
 
     private:
-        FILE *fp;
+        FILE* fp;
         std::map<std::string, StoreZipMetaOfReader> filemetas;
     };
 }
 
-namespace pnnx {
-    class StoreZipWriter {
+namespace cnnx
+{
+    class StoreZipWriter
+    {
     public:
         StoreZipWriter();
 
         ~StoreZipWriter();
 
-        int open(const std::string &path);
+        int open(const std::string& path);
 
-        int write_file(const std::string &name, const char *data, uint64_t size);
+        int write_file(const std::string& name, const char* data, uint64_t size);
 
         int close();
 
     private:
-        FILE *fp;
+        FILE* fp;
         std::vector<StoreZipMetaOfWriter> filemetas;
     };
 }
 
-#endif //STOREZIP_HPP
+#endif //CNNX_IR_STOREZIP_HPP

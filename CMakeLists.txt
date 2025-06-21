@@ -28,12 +28,9 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # 构建静态库配置：
 # 创建名为cnnx_static的静态库，源文件为main.cpp
 add_library(cnnx_static STATIC
-        include/runtime/cnnx/ir.hpp
-        include/runtime/cnnx/storezip.hpp
-        source/utils/storezip.cpp
-        source/runtime/pnnx/ir.cpp
+        include/runtime/cnnx/utils/storezip.hpp
+        source/runtime/pnnx/utils/storezip.cpp
         include/runtime/cnnx/utils/fp16_converter.hpp
-        source/utils/fp16_converter.cpp
         include/runtime/cnnx/ir/parameter.hpp
         source/runtime/pnnx/ir/parameter.cpp
         include/runtime/cnnx/ir/attribute.hpp
@@ -42,7 +39,8 @@ add_library(cnnx_static STATIC
         include/runtime/cnnx/ir/graph.hpp
         source/runtime/pnnx/ir/attribute.cpp
         source/runtime/pnnx/ir/operand.cpp
-        source/runtime/pnnx/ir/operator.cpp)
+        source/runtime/pnnx/ir/operator.cpp
+        source/runtime/pnnx/ir/graph.cpp)
 # 为静态库链接依赖项：
 target_link_libraries(cnnx_static PRIVATE
         pthread  # POSIX线程库
@@ -58,12 +56,9 @@ set_target_properties(cnnx_static PROPERTIES OUTPUT_NAME "cnnx_static")
 # 构建可执行文件配置：
 # 创建名为cnnx的可执行文件，源文件为main.cpp
 add_executable(cnnx main.cpp
-        include/runtime/cnnx/ir.hpp
-        include/runtime/cnnx/storezip.hpp
-        source/utils/storezip.cpp
-        source/runtime/pnnx/ir.cpp
+        include/runtime/cnnx/utils/storezip.hpp
+        source/runtime/pnnx/utils/storezip.cpp
         include/runtime/cnnx/utils/fp16_converter.hpp
-        source/utils/fp16_converter.cpp
         include/runtime/cnnx/ir/parameter.hpp
         source/runtime/pnnx/ir/parameter.cpp
         include/runtime/cnnx/ir/attribute.hpp
@@ -72,7 +67,8 @@ add_executable(cnnx main.cpp
         include/runtime/cnnx/ir/graph.hpp
         source/runtime/pnnx/ir/attribute.cpp
         source/runtime/pnnx/ir/operand.cpp
-        source/runtime/pnnx/ir/operator.cpp)
+        source/runtime/pnnx/ir/operator.cpp
+        source/runtime/pnnx/ir/graph.cpp)
 # 为可执行文件链接依赖项（与静态库相同）
 target_link_libraries(cnnx PRIVATE
         pthread

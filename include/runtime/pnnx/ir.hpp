@@ -300,6 +300,7 @@ namespace pnnx
 }
 
 // Operator 类声明，操作符
+// TODO: 分析设计思路
 namespace pnnx
 {
     class Operator

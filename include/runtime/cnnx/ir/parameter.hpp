@@ -1,48 +1,15 @@
 //
-// Created by aoweichen on 2025/5/28.
+// Created by aowei on 25-6-21.
 //
 
-#ifndef PNNX_IR_HPP
-#define PNNX_IR_HPP
+#ifndef CNNX_IR_PARAMETER_HPP
+#define CNNX_IR_PARAMETER_HPP
 
 #include <climits>
 #include <complex>
 #include <map>
 #include <utility>
 #include <vector>
-// TODO:分析下面的代码具体做了什么
-#if BUILD_TORCH2PNNX
-namespace torch
-{
-    namespace jit
-    {
-        struct Value;
-        struct Node;
-    }
-}
-namespace at
-{
-    class Tensor;
-}
-namespace pnnx
-{
-    class TorchTensorProxy;
-}
-#endif
-
-// TODO:分析下面的代码具体做了什么
-#if BUILD_ONNX2PNNX
-namespace onnx
-{
-    class AttributeProto;
-    class TensorProto;
-    class ValueInfoProto;
-}
-namespace pnnx::onnx2pnnx
-{
-    class OnnxAttributeProxy;
-}
-#endif
 
 // parameter 类声明
 namespace pnnx
@@ -223,128 +190,14 @@ namespace pnnx
         std::vector<int> int_array{};
         std::vector<float> float_array{};
         std::vector<std::complex<float>> complex_float_array{};
+        std::vector<std::string> string_array{};
+
         //TODO: 解析 keep std::string typed member the last for cross cxxabi compatibility
         std::string string{};
-        std::vector<std::string> string_array{};
     };
 
     bool operator==(const Parameter& lhs, const Parameter& rhs);
 }
 
-// Attribute 类声明
-namespace pnnx
-{
-    class Attribute
-    {
-        // type => {
-        //  1 => fp32, 2 => fp64, 3 => fp16
-        //  4 => i32, 5 => i64, 6 => i16, 7 => i8, 8 => u8
-        //  9 => bool
-        //  10 => c64, 11 => c128, 12 => c32, 13 => bf16
-        // }
-    public:
-        Attribute() = default;
 
-        Attribute(const std::initializer_list<int>& shape, const std::vector<float>& data);
-
-        [[nodiscard]] size_t element_size() const;
-        [[nodiscard]] int element_count() const;
-        [[nodiscard]] std::vector<float> get_float32_data() const;
-        void set_float32_data(const std::vector<float>& new_data);
-
-    public:
-        // type => {
-        //  1 => fp32, 2 => fp64, 3 => fp16
-        //  4 => i32, 5 => i64, 6 => i16, 7 => i8, 8 => u8
-        //  9 => bool
-        //  10 => c64, 11 => c128, 12 => c32, 13 => bf16
-        // }
-        int type{};
-        std::vector<int> shape{};
-        std::vector<char> data{};
-        std::map<std::string, Parameter> params{};
-    };
-
-    bool operator==(const Attribute& lhs, const Attribute& rhs);
-
-    Attribute operator+(const Attribute& lhs, const Attribute& rhs);
-}
-
-// Operand 类声明，操作数
-// TODO: 分析设计思路
-namespace pnnx
-{
-    class Operator;
-
-    class Operand
-    {
-    public:
-        Operator* producer{};
-        std::vector<Operator*> consumers{};
-        std::vector<int> shape{};
-        std::map<std::string, Parameter> params{};
-        int type;
-        // keep std::string typed member the last for cross cxxabi compatibility
-        std::string name;
-
-    public:
-        void remove_consumer(const Operator& consumer_operator);
-
-    private:
-        friend class Graph;
-
-        Operand(): type(0)
-        {
-        }
-    };
-}
-
-// Operator 类声明，操作符
-// TODO: 分析设计思路
-namespace pnnx
-{
-    class Operator
-    {
-    public:
-        Operator() = default;
-        bool has_param(const std::string& key) const;
-        bool has_attr(const std::string& key) const;
-        bool has_input(const std::string& key) const;
-
-        Operand* named_input(const std::string& key);
-        const Operand* named_input(const std::string& key) const;
-
-    public:
-        std::vector<Operand*> inputs;
-        std::vector<Operand*> outputs;
-        std::vector<std::string> input_names;
-        std::map<std::string, Parameter> params;
-        std::map<std::string, Attribute> attrs;
-
-        // keep std::string typed member the last for cross cxxabi compatibility
-        std::string type;
-        std::string name;
-
-    private:
-        friend class Graph;
-    };
-}
-
-// Graph 类声明
-namespace pnnx
-{
-    class Graph
-    {
-    public:
-
-    public:
-        std::vector<Operator*> operators;
-        std::vector<Operand*> operands;
-
-    private:
-        Graph(const Graph& rhs);
-        Graph& operator =(const Graph& rhs);
-    };
-}
-
-#endif //PNNX_IR_HPP
+#endif //CNNX_IR_PARAMETER_HPP

@@ -4,7 +4,7 @@
 
 #include <cstring>
 #include <algorithm>
-#include <runtime/pnnx/ir.hpp>
+#include <runtime/cnnx/ir.hpp>
 #include <utils/fp16_converter.hpp>
 
 // 辅助静态函数

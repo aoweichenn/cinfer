@@ -3,7 +3,7 @@
 //
 
 #include <cstdint>
-#include <runtime/pnnx/storezip.hpp>
+#include <runtime/cnnx/storezip.hpp>
 using namespace pnnx;
 using namespace std;
 

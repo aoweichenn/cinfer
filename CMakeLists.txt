@@ -32,14 +32,17 @@ add_library(cnnx_static STATIC
         include/runtime/cnnx/storezip.hpp
         source/utils/storezip.cpp
         source/runtime/pnnx/ir.cpp
-        include/utils/fp16_converter.hpp
+        include/runtime/cnnx/utils/fp16_converter.hpp
         source/utils/fp16_converter.cpp
         include/runtime/cnnx/ir/parameter.hpp
         source/runtime/pnnx/ir/parameter.cpp
         include/runtime/cnnx/ir/attribute.hpp
         include/runtime/cnnx/ir/operand.hpp
         include/runtime/cnnx/ir/operator.hpp
-        include/runtime/cnnx/ir/graph.hpp)
+        include/runtime/cnnx/ir/graph.hpp
+        source/runtime/pnnx/ir/attribute.cpp
+        source/runtime/pnnx/ir/operand.cpp
+        source/runtime/pnnx/ir/operator.cpp)
 # 为静态库链接依赖项：
 target_link_libraries(cnnx_static PRIVATE
         pthread  # POSIX线程库
@@ -59,14 +62,17 @@ add_executable(cnnx main.cpp
         include/runtime/cnnx/storezip.hpp
         source/utils/storezip.cpp
         source/runtime/pnnx/ir.cpp
-        include/utils/fp16_converter.hpp
+        include/runtime/cnnx/utils/fp16_converter.hpp
         source/utils/fp16_converter.cpp
         include/runtime/cnnx/ir/parameter.hpp
         source/runtime/pnnx/ir/parameter.cpp
         include/runtime/cnnx/ir/attribute.hpp
         include/runtime/cnnx/ir/operand.hpp
         include/runtime/cnnx/ir/operator.hpp
-        include/runtime/cnnx/ir/graph.hpp)
+        include/runtime/cnnx/ir/graph.hpp
+        source/runtime/pnnx/ir/attribute.cpp
+        source/runtime/pnnx/ir/operand.cpp
+        source/runtime/pnnx/ir/operator.cpp)
 # 为可执行文件链接依赖项（与静态库相同）
 target_link_libraries(cnnx PRIVATE
         pthread

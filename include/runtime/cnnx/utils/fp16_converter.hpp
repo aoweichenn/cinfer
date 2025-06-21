@@ -5,7 +5,7 @@
 #ifndef FP16_CONVERTER_HPP
 #define FP16_CONVERTER_HPP
 
-namespace pnnx
+namespace cnnx
 {
     unsigned short float32_to_float16(float fp32);
 

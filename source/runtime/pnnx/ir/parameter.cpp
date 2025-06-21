@@ -5,7 +5,7 @@
 #include <runtime/cnnx/ir/parameter.hpp>
 
 // paramter 类中部分函数的实现
-namespace pnnx
+namespace cnnx
 {
     // TODO: 使用枚举代替 type
     Parameter Parameter::parse_from_string(const std::string& value)
@@ -85,6 +85,7 @@ namespace pnnx
         return parameter;
     }
 
+    // TODO: 分析这个代码
     std::string Parameter::encode_to_string(const Parameter& param)
     {
         std::string result{};
@@ -194,6 +195,7 @@ namespace pnnx
         return result;
     }
 
+    // TODO: 分析这个代码
     bool operator==(const Parameter& lhs, const Parameter& rhs)
     {
         if (lhs.type != rhs.type) return false;

@@ -5,7 +5,7 @@
 #include <cstring>
 #include <algorithm>
 #include <runtime/cnnx/ir.hpp>
-#include <utils/fp16_converter.hpp>
+#include <runtime/cnnx/utils/fp16_converter.hpp>
 
 // 辅助静态函数
 namespace pnnx

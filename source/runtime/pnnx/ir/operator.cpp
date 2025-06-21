@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <runtime/cnnx/ir/operator.hpp>
 
+// Operator 类声明，操作符
 namespace cnnx
 {
     // 判断是否有某个 param

@@ -30,7 +30,7 @@ namespace cnnx
                                      const Operator* current_operator);
         Operand* new_operand(const std::string& name);
         Operand* get_operand(const std::string& name);
-        const Operand* get_operand(const std::string& name) const;
+        [[nodiscard]] const Operand* get_operand(const std::string& name) const;
 
     public:
         std::vector<Operator*> operators;

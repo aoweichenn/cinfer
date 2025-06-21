@@ -20,12 +20,12 @@ namespace cnnx
     {
     public:
         Operator() = default;
-        bool has_param(const std::string& key) const;
-        bool has_attr(const std::string& key) const;
-        bool has_input(const std::string& key) const;
+        [[nodiscard]] bool has_param(const std::string& key) const;
+        [[nodiscard]] bool has_attr(const std::string& key) const;
+        [[nodiscard]] bool has_input(const std::string& key) const;
 
         Operand* named_input(const std::string& key);
-        const Operand* named_input(const std::string& key) const;
+        [[nodiscard]] const Operand* named_input(const std::string& key) const;
 
     public:
         std::vector<Operand*> inputs;

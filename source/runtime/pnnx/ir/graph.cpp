@@ -384,6 +384,8 @@ namespace cnnx
         return 0;
     }
 
+    // TODO: 分析这个代码
+    // 处理参数文件
     int Graph::parse(const std::string& param)
     {
         return 0;

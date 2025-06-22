@@ -387,6 +387,7 @@ namespace cnnx
                 }
             }
             fprintf(param_fp, ")");
+            // 写入 type 的字符串形式
             fprintf(param_fp, type_to_string(operand->type));
         }
     }

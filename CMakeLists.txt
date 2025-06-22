@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 # 定义项目基本信息：项目名称为cnnx，版本1.0.0，使用C++语言
-project(cnnx VERSION 1.0.0 LANGUAGES CXX)
+project(cinfer VERSION 1.0.0 LANGUAGES CXX)
 # 添加预定宏
 add_compile_definitions(GLOG_USE_GLOG_EXPORT)
 
@@ -27,7 +27,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # 构建静态库配置：
 # 创建名为cnnx_static的静态库，源文件为main.cpp
-add_library(cnnx_static STATIC
+add_library(cinfer_static STATIC
         include/runtime/cnnx/utils/storezip.hpp
         source/runtime/cnnx/utils/storezip.cpp
         include/runtime/cnnx/utils/fp16_converter.hpp
@@ -42,10 +42,10 @@ add_library(cnnx_static STATIC
         source/runtime/cnnx/ir/operand.cpp
         source/runtime/cnnx/ir/operator.cpp
         source/runtime/cnnx/ir/graph.cpp
-        include/data/tensor.hpp
-        include/data/utils.hpp)
+        include/tensor/tensor.hpp
+        include/tensor/utils.hpp)
 # 为静态库链接依赖项：
-target_link_libraries(cnnx_static PRIVATE
+target_link_libraries(cinfer_static PRIVATE
         pthread  # POSIX线程库
         ${PROJECT_SOURCE_DIR}/third_party/library/glog/libglog.a  # Google日志库
         ${PROJECT_SOURCE_DIR}/third_party/library/gflags/libgflags.a  # 命令行参数解析库
@@ -54,11 +54,11 @@ target_link_libraries(cnnx_static PRIVATE
         ${PROJECT_SOURCE_DIR}/third_party/library/gtest/libgtest_main.a  # GTest的main函数入口
 )
 # 显式设置静态库输出名称（虽然与目标名相同，但显式声明更明确）
-set_target_properties(cnnx_static PROPERTIES OUTPUT_NAME "cnnx_static")
+set_target_properties(cinfer_static PROPERTIES OUTPUT_NAME "cinfer_static")
 
 # 构建可执行文件配置：
 # 创建名为cnnx的可执行文件，源文件为main.cpp
-add_executable(cnnx main.cpp
+add_executable(cinfer main.cpp
         include/runtime/cnnx/utils/storezip.hpp
         source/runtime/cnnx/utils/storezip.cpp
         include/runtime/cnnx/utils/fp16_converter.hpp
@@ -73,10 +73,10 @@ add_executable(cnnx main.cpp
         source/runtime/cnnx/ir/operand.cpp
         source/runtime/cnnx/ir/operator.cpp
         source/runtime/cnnx/ir/graph.cpp
-        include/data/tensor.hpp
-        include/data/utils.hpp)
+        include/tensor/tensor.hpp
+        include/tensor/utils.hpp)
 # 为可执行文件链接依赖项（与静态库相同）
-target_link_libraries(cnnx PRIVATE
+target_link_libraries(cinfer PRIVATE
         pthread
         ${PROJECT_SOURCE_DIR}/third_party/library/glog/libglog.a
         ${PROJECT_SOURCE_DIR}/third_party/library/gflags/libgflags.a

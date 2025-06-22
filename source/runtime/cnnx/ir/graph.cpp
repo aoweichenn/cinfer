@@ -9,6 +9,12 @@
 #include <runtime/cnnx/ir/graph.hpp>
 #include <runtime/cnnx/utils/storezip.hpp>
 
+namespace cnnx
+{
+    constexpr auto BLANK_SPACE = " ";
+    constexpr auto LINE_FEED = "\n";
+}
+
 // 辅助静态函数 => 主要参与类型之间的转换
 namespace cnnx
 {
@@ -216,6 +222,239 @@ namespace cnnx
     }
 }
 
+// 静态辅助函数，辅解析 param => 处理 graph::save 的辅助函数
+namespace cnnx
+{
+    // 写入魔数到 cnnx param 文件当中
+    static void write_magic_number(FILE* param_fp)
+    {
+        fprintf(param_fp, "7767517%s", LINE_FEED);
+    }
+
+    // 写入总的 operator 数量和 operand 数量到文件的第二行
+    static void write_op_oprd_count(FILE* param_fp, const int op_count, const int oprd_count)
+    {
+        fprintf(param_fp, "%d%s%d%s", op_count, BLANK_SPACE, oprd_count, LINE_FEED);
+    }
+
+    // 写入该操作符的参数 params
+    static void write_op_params(FILE* param_fp, const Operator* op)
+    {
+        /*
+         * 列子：
+         *     假设处理的是："nn.Conv2d convbn2d_0 1 1 0 1 bias=True dilation=(1,1) groups=1
+         *     in_channels=3 kernel_size=(7,7) out_channels=64 padding=(3,3) padding_mode=zeros stride=(2,2)
+         *     @bias=(64)f32 @weight=(64,3,7,7)f32 $input=0 #0=(1,3,224,224)f32 #1=(1,64,112,112)f32"
+         *
+         *     那么他的属性就会是 bias=True dilation=(1,1) groups=1
+         *     in_channels=3 kernel_size=(7,7) out_channels=64 padding=(3,3) padding_mode=zeros stride=(2,2)
+         */
+        for (const auto& [param_name,param_value] : op->params)
+        {
+            // eg. 输出param_name bias=
+            fprintf(param_fp, "%s%s=", BLANK_SPACE, param_name.c_str());
+            // 继续输出后面 param_value True
+            const Parameter parameter = param_value;
+            std::string param_value_string = Parameter::encode_to_string(param_value);
+            fprintf(param_fp, "%s", param_value_string.c_str());
+            // 综合起来就是输出 " bias=True"，当然这只是众多案例中的一种
+        }
+    }
+
+    // 写入属性以及其 shape
+    static void write_op_attributes(FILE* param_fp, const Operator* op, StoreZipWriter& szw)
+    {
+        /**
+         * eg. @bias=(64)f32 @weight=(64,3,7,7)f32
+         */
+        for (const auto& [attr_name,attr_value] : op->attrs)
+        {
+            // 处理有关 @ 的操作符（operator）属性，比如说 bias, weight
+            // 输入：'' + ' bias=' => ' @bias='
+            fprintf(param_fp, "%s@%s=", BLANK_SPACE, attr_name.c_str());
+            const Attribute& attribute = attr_value;
+            // ' @bias=' + '(' => ' @bias=('
+            fprintf(param_fp, "(");
+            // 最后一个留给 ')',主要是防止最后出现多的空格
+            for (int i = 0; i < static_cast<int>(attribute.shape.size()) - 1; ++i)
+            {
+                // ' @bias=(' + '64' => ' @bias=(64'
+                fprintf(param_fp, "%d,", attribute.shape[i]);
+            }
+            if (!attribute.shape.empty())
+            {
+                // 写入最后一个 dim 的值
+                fprintf(param_fp, "%d", attribute.shape.back());
+            }
+            // ' @bias=(64' + ')' => ' @bias=(64)'
+            fprintf(param_fp, ")");
+            // ' @bias=(64' + ')' => ' @bias=(64)f32'
+            fprintf(param_fp, type_to_string(attribute.type));
+            // 将参数写到参数文件里面（zip）
+            std::string filename = op->name + "." + op->name;
+            szw.write_file(filename, attribute.data.data(), attribute.data.size());
+        }
+    }
+
+    // 写入 op 的输入 params
+    static void write_op_inputs(FILE* param_fp, const Operator* op)
+    {
+        /*
+         * 例子：$input=3 #3=(1,64,56,56)f32
+         */
+        if (op->input_names.size() == op->inputs.size())
+        {
+            // 写入输入 params，一般来讲，多输入的比较少见
+            // '' + ' $input=3'
+            for (size_t i = 0; i < op->input_names.size(); ++i)
+            {
+                if (op->input_names[i].empty()) continue;
+                const Operand* operand = op->inputs[i];
+                fprintf(param_fp, "%s$%s=%s", BLANK_SPACE, op->input_names[i].c_str(), operand->name.c_str());
+            }
+            // ' $input=3' => ' $input=3 #3='
+            for (const Operand* operand : op->inputs)
+            {
+                if (operand->shape.empty()) continue;
+                // ' $input=3' => ' $input=3 #3='
+                fprintf(param_fp, "%s#%s=", BLANK_SPACE, operand->name.c_str());
+
+                // 处理 (1,3,3,9) 这种
+                fprintf(param_fp, "(");
+                // ' $input=3 #3=' => ' $input=3 #3=(1,64,64,'
+                for (int i = 0; i < static_cast<int>(operand->shape.size()) - 1; ++i)
+                {
+                    // TODO: 分析这个情况
+                    // 暂时不知道这是个什么情况
+                    if (operand->shape[i] == -1) fprintf(param_fp, "?,");
+                    // ' $input=3 #3=' => ' $input=3 #3=(1,64,64,'
+                    else
+                    {
+                        fprintf(param_fp, "%d,", operand->shape[i]);
+                    }
+                }
+                // ' $input=3 #3=' => ' $input=3 #3=(1,64,64,56'
+                if (!operand->shape.empty())
+                {
+                    if (operand->shape[operand->shape.size() - 1] == -1)
+                    {
+                        fprintf(param_fp, "?");
+                    }
+                    else
+                    {
+                        fprintf(param_fp, "%d", operand->shape[operand->shape.size() - 1]);
+                    }
+                }
+                // ' $input=3 #3=' => ' $input=3 #3=(1,64,64,56)'
+                fprintf(param_fp, ")");
+                // ' $input=3 #3=' => ' $input=3 #3=(1,64,64,56)f32'
+                fprintf(param_fp, type_to_string(operand->type));
+            }
+            //
+        }
+    }
+
+    // 写入 op 的输入 params，由于输入参数搞定之后只剩下输出参数，这里就没有整啥名字之类的
+    static void write_op_outputs(FILE* param_fp, const Operator* op)
+    {
+        // 基本情况和上面输入的情况一模一样，这里就不做过多的分析了
+        for (const Operand* operand : op->outputs)
+        {
+            if (operand->shape.empty()) continue;
+            fprintf(param_fp, " #%s=", operand->name.c_str());
+
+            fprintf(param_fp, "(");
+            for (int i = 0; i < static_cast<int>(operand->shape.size()) - 1; ++i)
+            {
+                // 暂时未知的情况
+                // TODO: 分析
+                if (operand->shape[i] == -1)
+                {
+                    fprintf(param_fp, "?,");
+                }
+                else
+                {
+                    fprintf(param_fp, "%d,", operand->shape[i]);
+                }
+            }
+            if (!operand->shape.empty())
+            {
+                if (operand->shape[operand->shape.size() - 1] == -1) fprintf(param_fp, "?");
+                else
+                {
+                    fprintf(param_fp, "%d", operand->shape[operand->shape.size() - 1]);
+                }
+            }
+            fprintf(param_fp, ")");
+            fprintf(param_fp, type_to_string(operand->type));
+        }
+        fprintf(param_fp, "\n");
+    }
+
+    // 写入 param 中某一行的
+    // 输入名、输出名、输入操作符（operator）的数量（用于解析后面的参数）、输出操作符（operator）的数量
+    static void write_param_line(FILE* param_fp, const Operator* op, StoreZipWriter& szw)
+    {
+        /*
+         * 以下面三行为例子
+         * pnnx.Input pnnx_input_0 0 1 0 #0=(1,3,224,224)f32
+         * nn.Conv2d convbn2d_0 1 1 0 1 bias=True dilation=(1,1) groups=1 in_channels=3 kernel_size=(7,7) out_channels=64 padding=(3,3) padding_mode=zeros stride=(2,2) @bias=(64)f32 @weight=(64,3,7,7)f32 $input=0 #0=(1,3,224,224)f32 #1=(1,64,112,112)f32
+         * pnnx.Output pnnx_output_0 1 0 49 #49=(1,1000)f32
+         */
+
+        // 写入的格式如下
+        // 'op_type op_name op_input_oprd_num op_output_oprd_num'
+        // 例如:
+        //  pnnx.Input pnnx_input_0 0 1
+        //  nn.Conv2d convbn2d_0 1 1
+        //  pnnx.Output pnnx_output_0 1 0
+        fprintf(param_fp, "%-24s%s%-24s%s%d%s%d", op->type.c_str(), BLANK_SPACE,
+                op->name.c_str(), BLANK_SPACE, static_cast<int>(op->inputs.size()), BLANK_SPACE,
+                static_cast<int>(op->outputs.size()));
+        // 写入输入操作数（operand）的名字
+        // 然后栗子变成了下面这种
+        //  'pnnx.Input pnnx_input_0 0 1' + '' => 'pnnx.Input pnnx_input_0 0 1'
+        //  'nn.Conv2d convbn2d_0 1 1' + ' 0' => 'nn.Conv2d convbn2d_0 1 1 0'
+        //  'pnnx.Output pnnx_output_0 1 0' + ' 49' => 'pnnx.Output pnnx_output_0 1 0 49'
+        for (const Operand* operand : op->inputs)
+        {
+            fprintf(param_fp, "%s%s", BLANK_SPACE, operand->name.c_str());
+        }
+        // 写入输出操作数（operand）的**名字**
+        // 然后栗子变成了下面这种
+        //  'pnnx.Input pnnx_input_0 0 1' + ' 0' => 'pnnx.Input pnnx_input_0 0 1'
+        //  'nn.Conv2d convbn2d_0 1 1 0' + ' 1' => 'nn.Conv2d convbn2d_0 1 1 0 1'
+        //  'pnnx.Output pnnx_output_0 1 0 49' + '' => 'pnnx.Output pnnx_output_0 1 0 49'
+        for (const Operand* operand : op->outputs)
+        {
+            fprintf(param_fp, "%s%s", BLANK_SPACE, operand->name.c_str());
+        }
+
+        // 写入操作符的参数信息
+        // 然后栗子变成了下面这种
+        //  'pnnx.Input pnnx_input_0 0 1' + '' => 'pnnx.Input pnnx_input_0 0 1'
+        //  'nn.Conv2d convbn2d_0 1 1 0 1' + ' bias=True dilation=(1,1) groups=1 in_channels=3 kernel_size=(7,7)
+        //      out_channels=64 padding=(3,3) padding_mode=zeros stride=(2,2)'
+        //      => 'nn.Conv2d convbn2d_0 1 1 0 1  bias=True dilation=(1,1) groups=1 in_channels=3 kernel_size=(7,7)
+        //      out_channels=64 padding=(3,3) padding_mode=zeros stride=(2,2)'
+        //  'pnnx.Output pnnx_output_0 1 0 49' + '' => 'pnnx.Output pnnx_output_0 1 0 49'
+        write_op_params(param_fp, op);
+
+        // 写入操作符的参数信息
+        // 然后栗子变成了下面这种
+        //  'pnnx.Input pnnx_input_0 0 1' + '' => 'pnnx.Input pnnx_input_0 0 1'
+        //  胜率额前面的，中间这个例子简单些就是 ' ' => ' @bias=(64)f32'
+        //  'pnnx.Output pnnx_output_0 1 0 49' + '' => 'pnnx.Output pnnx_output_0 1 0 49'
+        write_op_attributes(param_fp, op, szw);
+        // $input=3 #3=(1,64,56,56)f32 #3=(1,64,56,56)f32 #4=(1,64,56,56)f32
+        // ' $input=3 #3=(1,64,56,56)f32 #3=(1,64,56,56)f32'
+        write_op_inputs(param_fp, op);
+        // ' #4=(1,64,56,56)f32'
+        write_op_outputs(param_fp, op);
+        fprintf(param_fp, "%s", LINE_FEED);
+    }
+}
+
 // graph 类初始化构造和赋值的实现部分
 namespace cnnx
 {
@@ -383,149 +622,19 @@ namespace cnnx
             return -1;
         }
 
-        // 写入魔数
-        fprintf(param_fp, "7767517\n");
+        // 写入魔数到模型 param 文件当中
+        write_magic_number(param_fp);
 
         // 写入 op count 和 oprand count
-        fprintf(param_fp, "%d %d\n", static_cast<int>(this->operators.size()), static_cast<int>(this->operands.size()));
-
+        write_op_oprd_count(param_fp, static_cast<int>(this->operators.size()),
+                            static_cast<int>(this->operands.size()));
+        // 处理下面的 params
         for (const Operator* op : this->operators)
         {
-            // 写入输入输出大小，说实话这里是空格，怎么到文件里面就很大
-            // %-24s %-24s %d %d
-            // op—>type op->name op->输入的操作数的个数 op->输出操作数的个数
-            fprintf(param_fp, "%-24s %-24s %d %d", op->type.c_str(), op->name.c_str(),
-                    static_cast<int>(op->inputs.size()), static_cast<int>(op->outputs.size()));
-            // 写入输入操作数的名字
-            for (const Operand* operand : op->inputs)
-            {
-                fprintf(param_fp, " %s", operand->name.c_str());
-            }
-            // 写入输出操作数的名字
-            for (const Operand* operand : op->outputs)
-            {
-                fprintf(param_fp, " %s", operand->name.c_str());
-            }
-            // 写入参数
-            // TODO:分析这个代码
-            for (const auto& [fst, snd] : op->params)
-            {
-                fprintf(param_fp, " %s=", fst.c_str());
-
-                const Parameter& parameter = snd;
-                std::string string = Parameter::encode_to_string(parameter);
-                fprintf(param_fp, "%s", string.c_str());
-            }
-
-            // TODO:分析这个代码，可以拆分成函数
-            // 写入参数，这个参数是 @ 开头的，表示这是一个独立的参数文件
-            for (const auto& [fst,snd] : op->attrs)
-            {
-                fprintf(param_fp, " @%s=", fst.c_str());
-
-                const Attribute& attribute = snd;
-                fprintf(param_fp, "(");
-
-                // 写入对应属性的 shape
-                // 形状的格式是 (a,b,c,d) 这种
-                for (int i = 0; i < static_cast<int>(attribute.shape.size()) - 1; ++i)
-                {
-                    fprintf(param_fp, "%d,", attribute.shape[i]);
-                }
-                // 写入最后一个数据并加上反括号
-                if (!attribute.shape.empty())
-                {
-                    fprintf(param_fp, "%d", attribute.shape[attribute.shape.size() - 1]);
-                }
-                fprintf(param_fp, ")");
-
-                fprintf(param_fp, type_to_string(attribute.type));
-                std::string filename = op->name + "." + fst;
-                szw.write_file(filename, attribute.data.data(), attribute.data.size());
-            }
-
-            // 处理输入参数的
-            // $input=3 #3=(1,64,56,56)f32 类似这种
-            // 只处理到 $input=3 这里
-            // TODO:分析这个代码，可以拆分成函数
-            if (op->input_names.size() == op->inputs.size())
-            {
-                for (size_t i = 0; i < op->input_names.size(); ++i)
-                {
-                    if (op->input_names[i].empty())
-                    {
-                        continue;
-                    }
-                    const Operand* operand = op->inputs[i];
-                    fprintf(param_fp, " $%s=%s", op->input_names[i].c_str(), operand->name.c_str());
-                }
-            }
-            // 处理后半部分 #3=(1,64,56,56)f32
-            for (const Operand* operand : op->outputs)
-            {
-                if (operand->shape.empty()) continue;
-                fprintf(param_fp, " #%s=", operand->name.c_str());
-
-                fprintf(param_fp, "(");
-                for (int i = 0; i < static_cast<int>(operand->shape.size()) - 1; ++i)
-                {
-                    // 暂时没有见过这种情况
-                    if (operand->shape[i] == -1)
-                    {
-                        fprintf(param_fp, "?,");
-                    }
-                    // 比较普通的场景
-                    else
-                    {
-                        fprintf(param_fp, "%d,", operand->shape[i]);
-                    }
-                }
-                if (!operand->shape.empty())
-                {
-                    if (operand->shape[operand->shape.size() - 1] == -1)
-                    {
-                        fprintf(param_fp, "?");
-                    }
-                    else
-                    {
-                        fprintf(param_fp, "%d", operand->shape[operand->shape.size() - 1]);
-                    }
-                }
-                fprintf(param_fp, ")");
-                fprintf(param_fp, type_to_string(operand->type));
-            }
-
-            // 处理输出参数的
-            // #9=(1,64,56,56)f32 类似这种
-            // TODO:分析这个代码，可以拆分成函数
-            for (const Operand* operand : op->outputs)
-            {
-                if (operand->shape.empty()) continue;
-                fprintf(param_fp, " #%s=", operand->name.c_str());
-
-                fprintf(param_fp, "(");
-                for (int i = 0; i < static_cast<int>(operand->shape.size()) - 1; ++i)
-                {
-                    if (operand->shape[i] == -1)
-                    {
-                        fprintf(param_fp, "?,");
-                    }
-                    else
-                    {
-                        fprintf(param_fp, "%d,", operand->shape[i]);
-                    }
-                }
-                if (!operand->shape.empty())
-                {
-                    if (operand->shape[operand->shape.size() - 1] == -1) fprintf(param_fp, "?");
-                    else fprintf(param_fp, "%d", operand->shape[operand->shape.size() - 1]);
-                }
-                fprintf(param_fp, ")");
-                fprintf(param_fp, type_to_string(operand->type));
-            }
-            fprintf(param_fp, "\n");
+            write_param_line(param_fp, op, szw);
         }
 
+        // 关闭文件流
         fclose(param_fp);
         return 0;
     }

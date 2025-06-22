@@ -29,20 +29,19 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # 创建名为cnnx_static的静态库，源文件为main.cpp
 add_library(cnnx_static STATIC
         include/runtime/cnnx/utils/storezip.hpp
-        source/runtime/pnnx/utils/storezip.cpp
+        source/runtime/cnnx/utils/storezip.cpp
         include/runtime/cnnx/utils/fp16_converter.hpp
-        source/runtime/pnnx/utils/fp16_converter.cpp
+        source/runtime/cnnx/utils/fp16_converter.cpp
         include/runtime/cnnx/ir/parameter.hpp
-        source/runtime/pnnx/ir/parameter.cpp
+        source/runtime/cnnx/ir/parameter.cpp
         include/runtime/cnnx/ir/attribute.hpp
         include/runtime/cnnx/ir/operand.hpp
         include/runtime/cnnx/ir/operator.hpp
         include/runtime/cnnx/ir/graph.hpp
-        source/runtime/pnnx/ir/attribute.cpp
-        source/runtime/pnnx/ir/operand.cpp
-        source/runtime/pnnx/ir/operator.cpp
-        source/runtime/pnnx/ir/graph.cpp
-        stu/pnnx/src/ir.cpp)
+        source/runtime/cnnx/ir/attribute.cpp
+        source/runtime/cnnx/ir/operand.cpp
+        source/runtime/cnnx/ir/operator.cpp
+        source/runtime/cnnx/ir/graph.cpp)
 # 为静态库链接依赖项：
 target_link_libraries(cnnx_static PRIVATE
         pthread  # POSIX线程库
@@ -59,20 +58,19 @@ set_target_properties(cnnx_static PROPERTIES OUTPUT_NAME "cnnx_static")
 # 创建名为cnnx的可执行文件，源文件为main.cpp
 add_executable(cnnx main.cpp
         include/runtime/cnnx/utils/storezip.hpp
-        source/runtime/pnnx/utils/storezip.cpp
+        source/runtime/cnnx/utils/storezip.cpp
         include/runtime/cnnx/utils/fp16_converter.hpp
-        source/runtime/pnnx/utils/fp16_converter.cpp
+        source/runtime/cnnx/utils/fp16_converter.cpp
         include/runtime/cnnx/ir/parameter.hpp
-        source/runtime/pnnx/ir/parameter.cpp
+        source/runtime/cnnx/ir/parameter.cpp
         include/runtime/cnnx/ir/attribute.hpp
         include/runtime/cnnx/ir/operand.hpp
         include/runtime/cnnx/ir/operator.hpp
         include/runtime/cnnx/ir/graph.hpp
-        source/runtime/pnnx/ir/attribute.cpp
-        source/runtime/pnnx/ir/operand.cpp
-        source/runtime/pnnx/ir/operator.cpp
-        source/runtime/pnnx/ir/graph.cpp
-        stu/pnnx/src/ir.cpp)
+        source/runtime/cnnx/ir/attribute.cpp
+        source/runtime/cnnx/ir/operand.cpp
+        source/runtime/cnnx/ir/operator.cpp
+        source/runtime/cnnx/ir/graph.cpp)
 # 为可执行文件链接依赖项（与静态库相同）
 target_link_libraries(cnnx PRIVATE
         pthread

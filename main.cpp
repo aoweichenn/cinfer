@@ -14,6 +14,8 @@ int main(int argc, char* argv[])
     Graph graph;
     graph.load("./resnet18.param",
                "./resnet18.bin");
+    graph.parse("./resnet18.param");
+    graph;
 }
 
 // int main(int argc, char* argv[])

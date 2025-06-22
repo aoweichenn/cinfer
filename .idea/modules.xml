@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/cnnx.iml" filepath="$PROJECT_DIR$/.idea/cnnx.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/CINFER.iml" filepath="$PROJECT_DIR$/.idea/CINFER.iml" />
     </modules>
   </component>
 </project>

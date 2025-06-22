@@ -2,6 +2,8 @@
 // Created by aoweichen on 2025/5/27.
 //
 
+#include <iostream>
+
 #include <runtime/cnnx/ir/graph.hpp>
 
 #include "runtime/cnnx/utils/storezip.hpp"
@@ -15,7 +17,8 @@ int main(int argc, char* argv[])
     graph.load("./resnet18.param",
                "./resnet18.bin");
     graph.parse("./resnet18.param");
-    graph;
+    const int error = graph.save("./test.param", "./test.bin");
+    std::cout << error << std::endl;
 }
 
 // int main(int argc, char* argv[])

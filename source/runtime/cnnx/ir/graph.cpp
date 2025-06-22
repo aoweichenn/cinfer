@@ -388,7 +388,6 @@ namespace cnnx
             fprintf(param_fp, ")");
             fprintf(param_fp, type_to_string(operand->type));
         }
-        fprintf(param_fp, "\n");
     }
 
     // 写入 param 中某一行的

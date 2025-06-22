@@ -2,8 +2,8 @@
 // Created by aowei on 25-6-21.
 //
 
-#ifndef CNNX_IR_ATTRIBUTE_HPP
-#define CNNX_IR_ATTRIBUTE_HPP
+#ifndef RUNTIME_CNNX_IR_ATTRIBUTE_HPP
+#define RUNTIME_CNNX_IR_ATTRIBUTE_HPP
 
 #include <complex>
 #include <map>
@@ -50,4 +50,4 @@ namespace cnnx
     Attribute operator+(const Attribute& lhs, const Attribute& rhs);
 }
 
-#endif //CNNX_IR_ATTRIBUTE_HPP
+#endif //RUNTIME_CNNX_IR_ATTRIBUTE_HPP

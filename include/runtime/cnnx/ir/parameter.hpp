@@ -2,8 +2,8 @@
 // Created by aowei on 25-6-21.
 //
 
-#ifndef CNNX_IR_PARAMETER_HPP
-#define CNNX_IR_PARAMETER_HPP
+#ifndef RUNTIME_CNNX_IR_PARAMETER_HPP
+#define RUNTIME_CNNX_IR_PARAMETER_HPP
 
 #include <climits>
 #include <complex>
@@ -199,4 +199,4 @@ namespace cnnx
 }
 
 
-#endif //CNNX_IR_PARAMETER_HPP
+#endif //RUNTIME_CNNX_IR_PARAMETER_HPP

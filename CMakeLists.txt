@@ -41,7 +41,9 @@ add_library(cnnx_static STATIC
         source/runtime/cnnx/ir/attribute.cpp
         source/runtime/cnnx/ir/operand.cpp
         source/runtime/cnnx/ir/operator.cpp
-        source/runtime/cnnx/ir/graph.cpp)
+        source/runtime/cnnx/ir/graph.cpp
+        include/data/tensor.hpp
+        include/data/utils.hpp)
 # 为静态库链接依赖项：
 target_link_libraries(cnnx_static PRIVATE
         pthread  # POSIX线程库
@@ -70,7 +72,9 @@ add_executable(cnnx main.cpp
         source/runtime/cnnx/ir/attribute.cpp
         source/runtime/cnnx/ir/operand.cpp
         source/runtime/cnnx/ir/operator.cpp
-        source/runtime/cnnx/ir/graph.cpp)
+        source/runtime/cnnx/ir/graph.cpp
+        include/data/tensor.hpp
+        include/data/utils.hpp)
 # 为可执行文件链接依赖项（与静态库相同）
 target_link_libraries(cnnx PRIVATE
         pthread

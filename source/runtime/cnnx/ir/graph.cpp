@@ -150,6 +150,7 @@ namespace cnnx
         const std::string lc = value.substr(1, value.find_last_of(')') - 1);
         std::istringstream lcss(lc);
 
+        operand->shape.clear();
         while (!lcss.eof())
         {
             std::string element;

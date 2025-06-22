@@ -363,6 +363,7 @@ namespace cnnx
             if (operand->shape.empty()) continue;
             fprintf(param_fp, " #%s=", operand->name.c_str());
 
+            // 处理(1,3,3,9)这种情况
             fprintf(param_fp, "(");
             for (int i = 0; i < static_cast<int>(operand->shape.size()) - 1; ++i)
             {

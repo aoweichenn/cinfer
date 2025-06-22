@@ -31,6 +31,25 @@ namespace cnnx
         return 0; // null
     }
 
+    // 对应本地命名的类型字符串
+    static const char* type_to_string(const int type)
+    {
+        if (type == 1) return "f32";
+        if (type == 2) return "f64";
+        if (type == 3) return "f16";
+        if (type == 4) return "i32";
+        if (type == 5) return "i64";
+        if (type == 6) return "i16";
+        if (type == 7) return "i8";
+        if (type == 8) return "u8";
+        if (type == 9) return "bool";
+        if (type == 10) return "c64";
+        if (type == 11) return "c128";
+        if (type == 12) return "c32";
+        if (type == 13) return "bf16";
+        return "null";
+    }
+
     // 返回对应类型的所占用的字节数
     // TODO: 这里的 complex 类型占用字节数是不是有问题
     static size_t type_to_element_size(const int type)
@@ -348,7 +367,7 @@ namespace cnnx
 
     // TODO: 分析这个代码
     // 保存参数文件
-    int Graph::save(const std::string& param_path, const std::string& bin_path)
+    int Graph::save(const std::string& param_path, const std::string& bin_path) const
     {
         FILE* param_fp = fopen(param_path.c_str(), "wb");
         if (!param_fp)
@@ -372,12 +391,139 @@ namespace cnnx
 
         for (const Operator* op : this->operators)
         {
-            fprintf(param_fp, "%-24s %-24s %d %d\n", op->type.c_str(), op->name.c_str(),
+            // 写入输入输出大小，说实话这里是空格，怎么到文件里面就很大
+            // %-24s %-24s %d %d
+            // op—>type op->name op->输入的操作数的个数 op->输出操作数的个数
+            fprintf(param_fp, "%-24s %-24s %d %d", op->type.c_str(), op->name.c_str(),
                     static_cast<int>(op->inputs.size()), static_cast<int>(op->outputs.size()));
+            // 写入输入操作数的名字
             for (const Operand* operand : op->inputs)
             {
                 fprintf(param_fp, " %s", operand->name.c_str());
             }
+            // 写入输出操作数的名字
+            for (const Operand* operand : op->outputs)
+            {
+                fprintf(param_fp, " %s", operand->name.c_str());
+            }
+            // 写入参数
+            // TODO:分析这个代码
+            for (const auto& [fst, snd] : op->params)
+            {
+                fprintf(param_fp, " %s=", fst.c_str());
+
+                const Parameter& parameter = snd;
+                std::string string = Parameter::encode_to_string(parameter);
+                fprintf(param_fp, "%s", string.c_str());
+            }
+
+            // TODO:分析这个代码，可以拆分成函数
+            // 写入参数，这个参数是 @ 开头的，表示这是一个独立的参数文件
+            for (const auto& [fst,snd] : op->attrs)
+            {
+                fprintf(param_fp, " @%s=", fst.c_str());
+
+                const Attribute& attribute = snd;
+                fprintf(param_fp, "(");
+
+                // 写入对应属性的 shape
+                // 形状的格式是 (a,b,c,d) 这种
+                for (int i = 0; i < static_cast<int>(attribute.shape.size()) - 1; ++i)
+                {
+                    fprintf(param_fp, "%d,", attribute.shape[i]);
+                }
+                // 写入最后一个数据并加上反括号
+                if (!attribute.shape.empty())
+                {
+                    fprintf(param_fp, "%d", attribute.shape[attribute.shape.size() - 1]);
+                }
+                fprintf(param_fp, ")");
+
+                fprintf(param_fp, type_to_string(attribute.type));
+                std::string filename = op->name + "." + fst;
+                szw.write_file(filename, attribute.data.data(), attribute.data.size());
+            }
+
+            // 处理输入参数的
+            // $input=3 #3=(1,64,56,56)f32 类似这种
+            // 只处理到 $input=3 这里
+            // TODO:分析这个代码，可以拆分成函数
+            if (op->input_names.size() == op->inputs.size())
+            {
+                for (size_t i = 0; i < op->input_names.size(); ++i)
+                {
+                    if (op->input_names[i].empty())
+                    {
+                        continue;
+                    }
+                    const Operand* operand = op->inputs[i];
+                    fprintf(param_fp, " $%s=%s", op->input_names[i].c_str(), operand->name.c_str());
+                }
+            }
+            // 处理后半部分 #3=(1,64,56,56)f32
+            for (const Operand* operand : op->outputs)
+            {
+                if (operand->shape.empty()) continue;
+                fprintf(param_fp, " #%s=", operand->name.c_str());
+
+                fprintf(param_fp, "(");
+                for (int i = 0; i < static_cast<int>(operand->shape.size()) - 1; ++i)
+                {
+                    // 暂时没有见过这种情况
+                    if (operand->shape[i] == -1)
+                    {
+                        fprintf(param_fp, "?,");
+                    }
+                    // 比较普通的场景
+                    else
+                    {
+                        fprintf(param_fp, "%d,", operand->shape[i]);
+                    }
+                }
+                if (!operand->shape.empty())
+                {
+                    if (operand->shape[operand->shape.size() - 1] == -1)
+                    {
+                        fprintf(param_fp, "?");
+                    }
+                    else
+                    {
+                        fprintf(param_fp, "%d", operand->shape[operand->shape.size() - 1]);
+                    }
+                }
+                fprintf(param_fp, ")");
+                fprintf(param_fp, type_to_string(operand->type));
+            }
+
+            // 处理输出参数的
+            // #9=(1,64,56,56)f32 类似这种
+            // TODO:分析这个代码，可以拆分成函数
+            for (const Operand* operand : op->outputs)
+            {
+                if (operand->shape.empty()) continue;
+                fprintf(param_fp, " #%s=", operand->name.c_str());
+
+                fprintf(param_fp, "(");
+                for (int i = 0; i < static_cast<int>(operand->shape.size()) - 1; ++i)
+                {
+                    if (operand->shape[i] == -1)
+                    {
+                        fprintf(param_fp, "?,");
+                    }
+                    else
+                    {
+                        fprintf(param_fp, "%d,", operand->shape[i]);
+                    }
+                }
+                if (!operand->shape.empty())
+                {
+                    if (operand->shape[operand->shape.size() - 1] == -1) fprintf(param_fp, "?");
+                    else fprintf(param_fp, "%d", operand->shape[operand->shape.size() - 1]);
+                }
+                fprintf(param_fp, ")");
+                fprintf(param_fp, type_to_string(operand->type));
+            }
+            fprintf(param_fp, "\n");
         }
 
         fclose(param_fp);
@@ -388,6 +534,146 @@ namespace cnnx
     // 处理参数文件
     int Graph::parse(const std::string& param)
     {
+        std::istringstream param_iss(param);
+        if (!param_iss.good())
+        {
+            fprintf(stderr, "open param file %s failled\n", param.c_str());
+            return -1;
+        }
+
+        // 处理魔数
+        {
+            int magic = 0;
+            std::string line;
+            std::getline(param_iss, line);
+            std::istringstream line_iss(line);
+
+            line_iss >> magic;
+        }
+
+        int operator_count = 0;
+        {
+            int operand_count = 0;
+            std::string line;
+            std::getline(param_iss, line);
+            std::istringstream line_iss(line);
+
+            line_iss >> operator_count >> operand_count;
+        }
+
+        for (int i = 0; i < operator_count; ++i)
+        {
+            std::string line;
+            std::getline(param_iss, line);
+            std::istringstream line_iss(line);
+
+            std::string type;
+            std::string name;
+            int input_count = 0;
+            int output_count = 0;
+            line_iss >> type >> name >> input_count >> output_count;
+
+            Operator* op = new_operator(type, name);
+            for (int j = 0; j < input_count; ++j)
+            {
+                std::string operand_name;
+                line_iss >> operand_name;
+
+                Operand* operand = get_operand(operand_name);
+                operand->consumers.push_back(op);
+                op->inputs.push_back(operand);
+            }
+
+            for (int j = 0; j < output_count; ++j)
+            {
+                std::string operand_name;
+                line_iss >> operand_name;
+
+                Operand* operand = new_operand(operand_name);
+                operand->producer = op;
+                op->outputs.push_back(operand);
+            }
+
+            while (!line_iss.eof())
+            {
+                std::string line_param;
+                line_iss >> line_param;
+
+                std::string key;
+                std::string value;
+                std::istringstream line_param_iss(line_param);
+                std::getline(line_param_iss, key, '=');
+                std::getline(line_param_iss, value);
+
+                if (key[0] == '@')
+                {
+                    // attribute
+                    // load_attribute(op, key.substr(1), value, szr);
+                    op->attrs[key.substr(1)] = Attribute();
+                    Attribute& attr = op->attrs[key.substr(1)];
+
+                    attr.type = 0;
+                    if (value.empty()) continue;
+                    if (value[0] == '%')
+                    {
+                        // @data=%op1.data
+                        attr.data = std::vector<char>(value.begin() + 1, value.end());
+                    }
+                    if (value[0] == '(')
+                    {
+                        // @data=(1,%c,?,4)f32
+
+                        //type
+                        std::string typestr = value.substr(value.find_last_of(')') + 1);
+                        attr.type = string_to_type(typestr.c_str());
+
+                        // shape
+                        std::string lc = value.substr(1, value.find_last_of(')') - 1);
+                        std::istringstream lcss(lc);
+
+                        attr.shape.clear();
+                        while (!lcss.eof())
+                        {
+                            std::string element;
+                            std::getline(lcss, element, ',');
+
+                            if (element == "?")
+                            {
+                                attr.shape.push_back(-1);
+                            }
+                            else if (element[0] == '%')
+                            {
+                                // encode %abc as symbolic tag
+                                attr.shape.push_back(-233);
+                                int index = static_cast<int>(attr.shape.size() - 1);
+                                std::string element_key = element.substr(1);
+                                attr.params[std::string("__shape__") + std::to_string(index)] = Parameter(element_key);
+                            }
+                            else
+                            {
+                                int element_int = std::stoi(element);
+                                attr.shape.push_back(element_int);
+                            }
+                        }
+                    }
+                }
+                else if (key[0] == '$')
+                {
+                    // operand input key
+                    load_input_key(op, key.substr(1), value);
+                }
+                else if (key[0] == '#')
+                {
+                    // operand shape
+                    load_shape(op, key.substr(1), value);
+                }
+                else
+                {
+                    // parameter
+                    load_parameter(op, key, value);
+                }
+            }
+        }
         return 0;
     }
 }
@@ -400,7 +686,7 @@ namespace cnnx
     // 返回运算符的指针
     Operator* Graph::new_operator(const std::string& type, const std::string& name)
     {
-        Operator* op = new Operator;
+        auto* op = new Operator;
         op->type = type;
         op->name = name;
         this->operators.push_back(op);
@@ -412,7 +698,7 @@ namespace cnnx
     Operator* Graph::new_operator_before(const std::string& type, const std::string& name,
                                          const Operator* current_operator)
     {
-        Operator* op = new Operator;
+        auto* op = new Operator;
         op->type = type;
         op->name = name;
         const auto pos = std::find(this->operators.begin(), this->operators.end(), current_operator);
@@ -425,7 +711,7 @@ namespace cnnx
     Operator* Graph::new_operator_after(const std::string& type, const std::string& name,
                                         const Operator* current_operator)
     {
-        Operator* op = new Operator;
+        auto* op = new Operator;
         op->type = type;
         op->name = name;
         const auto pos = std::find(this->operators.begin(), this->operators.end(), current_operator) + 1;
@@ -437,7 +723,7 @@ namespace cnnx
     // 返回运算数的指针
     Operand* Graph::new_operand(const std::string& name)
     {
-        Operand* opd = new Operand;
+        auto* opd = new Operand;
         opd->name = name;
         this->operands.push_back(opd);
         return opd;

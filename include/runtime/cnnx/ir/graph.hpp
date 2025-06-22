@@ -19,7 +19,7 @@ namespace cnnx
         ~Graph();
 
         int load(const std::string& param_path, const std::string& bin_path);
-        int save(const std::string& param_path, const std::string& bin_path);
+        [[nodiscard]] int save(const std::string& param_path, const std::string& bin_path) const;
 
         int parse(const std::string& param);
 

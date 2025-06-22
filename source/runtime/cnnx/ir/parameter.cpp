@@ -58,7 +58,7 @@ namespace cnnx
                 {
                     // integer array
                     parameter.type = 5;
-                    parameter.integer = std::stoi(element);
+                    parameter.int_array.push_back(std::stoi(element));
                 }
             }
             return parameter;

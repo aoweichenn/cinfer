@@ -149,6 +149,7 @@ namespace cnnx
         // TODO: 解析这段代码
         const std::string lc = value.substr(1, value.find_last_of(')') - 1);
         std::istringstream lcss(lc);
+
         while (!lcss.eof())
         {
             std::string element;
@@ -456,6 +457,11 @@ namespace cnnx
     }
 }
 
+// 静态辅助函数，辅解析 param => 处理 graph::load 的辅助函数
+namespace cnnx
+{
+}
+
 // graph 类初始化构造和赋值的实现部分
 namespace cnnx
 {
@@ -522,8 +528,7 @@ namespace cnnx
             iss >> magic;
         }
         int operator_count = 0;
-        // 获取 param 文件里面的第二行，其数据代表着
-        // 运算符的数量，运算数的数量
+        // 获取 param 文件里面的第二行，其数据代表着一个魔数
         {
             int operand_count = 0;
             std::string line;
@@ -552,6 +557,7 @@ namespace cnnx
             {
                 std::string operand_name;
                 iss >> operand_name;
+
                 Operand* operand = this->get_operand(operand_name);
                 operand->consumers.push_back(op);
                 op->inputs.push_back(operand);
@@ -562,9 +568,9 @@ namespace cnnx
                 std::string operand_name;
                 iss >> operand_name;
 
-                Operand* opd = this->new_operand(operand_name);
-                opd->producer = op;
-                op->outputs.push_back(opd);
+                Operand* operand = this->new_operand(operand_name);
+                operand->producer = op;
+                op->outputs.push_back(operand);
             }
 
             // key = value

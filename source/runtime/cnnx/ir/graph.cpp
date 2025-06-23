@@ -584,9 +584,8 @@ namespace cnnx
             // key = value
             while (!iss.eof())
             {
-                std::string param;
-                iss >> param;
-                if (param.empty()) break;
+                // TODO: 这列 if (param.empty()) break;
+                // 可能会影响后面的可能要加的东西，这里的话做个标记
                 std::string key;
                 std::string value;
                 std::istringstream pss(param);

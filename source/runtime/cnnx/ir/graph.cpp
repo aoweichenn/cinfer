@@ -256,8 +256,8 @@ namespace cnnx
             // eg. 输出param_name bias=
             fprintf(param_fp, "%s%s=", BLANK_SPACE, param_name.c_str());
             // 继续输出后面 param_value True
-            const Parameter parameter = param_value;
-            std::string param_value_string = Parameter::encode_to_string(param_value);
+            const Parameter& parameter = param_value;
+            std::string param_value_string = Parameter::encode_to_string(parameter);
             fprintf(param_fp, "%s", param_value_string.c_str());
             // 综合起来就是输出 " bias=True"，当然这只是众多案例中的一种
         }
@@ -302,7 +302,7 @@ namespace cnnx
     static void write_op_inputs(FILE* param_fp, const Operator* op)
     {
         /*
-         * 例子：$input=3 #3=(1,64,56,56)f32
+         * 例子：$input=3 #3=(1,64,56,56)f32，不一定非要带个 $ 开头，只要是前面参数确定的输入的个数，就可以
          */
         if (op->input_names.size() == op->inputs.size())
         {
@@ -314,46 +314,46 @@ namespace cnnx
                 const Operand* operand = op->inputs[i];
                 fprintf(param_fp, "%s$%s=%s", BLANK_SPACE, op->input_names[i].c_str(), operand->name.c_str());
             }
-            // ' $input=3' => ' $input=3 #3='
-            for (const Operand* operand : op->inputs)
-            {
-                if (operand->shape.empty()) continue;
-                // ' $input=3' => ' $input=3 #3='
-                fprintf(param_fp, "%s#%s=", BLANK_SPACE, operand->name.c_str());
-
-                // 处理 (1,3,3,9) 这种
-                fprintf(param_fp, "(");
-                // ' $input=3 #3=' => ' $input=3 #3=(1,64,64,'
-                for (int i = 0; i < static_cast<int>(operand->shape.size()) - 1; ++i)
-                {
-                    // TODO: 分析这个情况
-                    // 暂时不知道这是个什么情况
-                    if (operand->shape[i] == -1) fprintf(param_fp, "?,");
-                    // ' $input=3 #3=' => ' $input=3 #3=(1,64,64,'
-                    else
-                    {
-                        fprintf(param_fp, "%d,", operand->shape[i]);
-                    }
-                }
-                // ' $input=3 #3=' => ' $input=3 #3=(1,64,64,56'
-                if (!operand->shape.empty())
-                {
-                    if (operand->shape[operand->shape.size() - 1] == -1)
-                    {
-                        fprintf(param_fp, "?");
-                    }
-                    else
-                    {
-                        fprintf(param_fp, "%d", operand->shape[operand->shape.size() - 1]);
-                    }
-                }
-                // ' $input=3 #3=' => ' $input=3 #3=(1,64,64,56)'
-                fprintf(param_fp, ")");
-                // ' $input=3 #3=' => ' $input=3 #3=(1,64,64,56)f32'
-                fprintf(param_fp, type_to_string(operand->type));
-            }
-            //
         }
+        // ' $input=3' => ' $input=3 #3='
+        for (const Operand* operand : op->inputs)
+        {
+            if (operand->shape.empty()) continue;
+            // ' $input=3' => ' $input=3 #3='
+            fprintf(param_fp, "%s#%s=", BLANK_SPACE, operand->name.c_str());
+
+            // 处理 (1,3,3,9) 这种
+            fprintf(param_fp, "(");
+            // ' $input=3 #3=' => ' $input=3 #3=(1,64,64,'
+            for (int i = 0; i < static_cast<int>(operand->shape.size()) - 1; ++i)
+            {
+                // TODO: 分析这个情况
+                // 暂时不知道这是个什么情况
+                if (operand->shape[i] == -1) fprintf(param_fp, "?,");
+                // ' $input=3 #3=' => ' $input=3 #3=(1,64,64,'
+                else
+                {
+                    fprintf(param_fp, "%d,", operand->shape[i]);
+                }
+            }
+            // ' $input=3 #3=' => ' $input=3 #3=(1,64,64,56'
+            if (!operand->shape.empty())
+            {
+                if (operand->shape[operand->shape.size() - 1] == -1)
+                {
+                    fprintf(param_fp, "?");
+                }
+                else
+                {
+                    fprintf(param_fp, "%d", operand->shape[operand->shape.size() - 1]);
+                }
+            }
+            // ' $input=3 #3=' => ' $input=3 #3=(1,64,64,56)'
+            fprintf(param_fp, ")");
+            // ' $input=3 #3=' => ' $input=3 #3=(1,64,64,56)f32'
+            fprintf(param_fp, type_to_string(operand->type));
+        }
+        //
     }
 
     // 写入 op 的输入 params，由于输入参数搞定之后只剩下输出参数，这里就没有整啥名字之类的
@@ -545,7 +545,14 @@ namespace cnnx
             std::string line;
             std::getline(ifs, line);
             std::istringstream iss(line);
-
+            // 由于 windows 和 linux 的换行机制不一样，
+            // linux 换行符是 \n 而 windows 的是 \r\n
+            // 会导致在读取最后一行的时候多读入一个\r，导致多了一个 "" 的属性，具体表现为
+            // pnnx.Input               pnnx_input_0             0 1 0' =' #0=(1,3,224,224)f32
+            if (!line.empty() && line.back() == '\r')
+            {
+                line.pop_back();
+            }
             std::string type;
             std::string name;
             int input_count = 0;
@@ -579,7 +586,7 @@ namespace cnnx
             {
                 std::string param;
                 iss >> param;
-
+                if (param.empty()) break;
                 std::string key;
                 std::string value;
                 std::istringstream pss(param);

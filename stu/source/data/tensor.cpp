@@ -108,6 +108,7 @@ Tensor<T>::Tensor(const std::vector<uint32_t>& shapes) {
   uint32_t remaining = 3 - shapes.size();
   std::vector<uint32_t> shapes_(3, 1);
   std::copy(shapes.begin(), shapes.end(), shapes_.begin() + remaining);
+  std::copy(shapes.begin(), shapes.end(), shapes_.begin() + remaining);
 
   uint32_t channels = shapes_.at(0);
   uint32_t rows = shapes_.at(1);

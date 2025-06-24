@@ -35,6 +35,45 @@ namespace cinfer
         // 显式初始化指定 shapes 维 tensor，数据写在 arma 的 cols 里，数据来源于一个数据指针
         explicit Tensor(T* raw_tensor_ptr, const std::vector<uint32_t>& shapes);
 
+    public:
+        uint32_t rows() const;
+        uint32_t cols() const;
+        uint32_t channels() const;
+        size_t elements_size() const;
+        size_t planes_size() const;
+        bool empty() const;
+        T& index(uint32_t offset);
+        const T index(uint32_t offset) const;
+        std::vector<T> shapes() const;
+        const std::vector<T>& raw_tensor_shapes() const;
+        arma::cube<T>& data() const;
+        const arma::cube<T>& data() const;
+        arma::Mat<T>& slice(uint32_t channel);
+        const arma::Mat<T>& slice(uint32_t channel) const;
+        T& at(uint32_t channel, uint32_t row, uint32_t col);
+        const T at(uint32_t channel, uint32_t row, uint32_t col) const;
+        T* raw_tensor_ptr();
+        const T* raw_tensor_ptr() const;
+        T* raw_tensor_ptr(size_t offset);
+        const T* raw_tensor_ptr(size_t offset) const;
+        T* matrix_raw_tensor_ptr(uint32_t index);
+        const T* matrix_raw_tensor_ptr(uint32_t index) const;
+        void show();
+
+    public:
+        void set_data(const arma::Cube<T>& data);
+        void padding(const std::vector<uint32_t>& pads, T padding_value);
+        void fill(T fill_value);
+        void fill(const std::vector<T>& values, bool row_major = true);
+        std::vector<T> values(bool row_major = true);
+        void ones();
+        void randn(T mean = 0, T var = 1);
+        void randu(T mean = 0, T var = 1);
+        void reshape(const std::vector<uint32_t>& shapes, bool row_major = false);
+        void flatten(bool row_major = false);
+        // 对数据做一些变换
+        void transform(const std::function<T(T)>& filter);
+
     private:
         // TODO: 整改
         void review(const std::vector<uint32_t>& shapes);

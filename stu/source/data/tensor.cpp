@@ -22,8 +22,8 @@
 // Created by fss on 22-11-12.
 
 #include "data/tensor.hpp"
-namespace kuiper_infer {
 
+namespace kuiper_infer {
 template <typename T>
 Tensor<T>::Tensor(T* raw_ptr, uint32_t size) {
   CHECK_NE(raw_ptr, nullptr);
@@ -226,10 +226,10 @@ template <typename T>
 void Tensor<T>::Padding(const std::vector<uint32_t>& pads, T padding_value) {
   CHECK(!this->data_.empty()) << "The data area of the tensor is empty.";
   CHECK_EQ(pads.size(), 4);
-  uint32_t pad_rows1 = pads.at(0);  // up
-  uint32_t pad_rows2 = pads.at(1);  // bottom
-  uint32_t pad_cols1 = pads.at(2);  // left
-  uint32_t pad_cols2 = pads.at(3);  // right
+  uint32_t pad_rows1 = pads.at(0); // up
+  uint32_t pad_rows2 = pads.at(1); // bottom
+  uint32_t pad_cols1 = pads.at(2); // left
+  uint32_t pad_cols2 = pads.at(3); // right
 
   arma::Cube<T> new_data(this->data_.n_rows + pad_rows1 + pad_rows2,
                          this->data_.n_cols + pad_cols1 + pad_cols2, this->data_.n_slices);
@@ -490,4 +490,4 @@ void Tensor<T>::Review(const std::vector<uint32_t>& shapes) {
 template class Tensor<float>;
 template class Tensor<int32_t>;
 template class Tensor<uint8_t>;
-}  // namespace kuiper_infer
+} // namespace kuiper_infer

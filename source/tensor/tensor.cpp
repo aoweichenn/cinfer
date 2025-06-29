@@ -282,7 +282,7 @@ namespace cinfer
     }
 
     template <typename T>
-    const T Tensor<T>::at(uint32_t channel, uint32_t row, uint32_t col) const
+    const T& Tensor<T>::at(uint32_t channel, uint32_t row, uint32_t col) const
     {
         CHECK_LT(row, this->rows());
         CHECK_LT(col, this->cols());

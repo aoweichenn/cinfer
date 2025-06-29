@@ -50,7 +50,7 @@ namespace cinfer
         arma::Mat<T>& slice(uint32_t channel);
         const arma::Mat<T>& slice(uint32_t channel) const;
         T& at(uint32_t channel, uint32_t row, uint32_t col);
-        const T at(uint32_t channel, uint32_t row, uint32_t col) const;
+        const T& at(uint32_t channel, uint32_t row, uint32_t col) const;
         T* raw_tensor_ptr();
         const T* raw_tensor_ptr() const;
         T* raw_tensor_ptr(size_t offset);

@@ -68,7 +68,7 @@ namespace cinfer
         std::vector<T> values(bool row_major = true);
         void ones();
         void randn(T mean = 0, T var = 1);
-        void randu(T mean = 0, T var = 1);
+        void randu(T min = 0, T max = 1);
         void reshape(const std::vector<uint32_t>& shapes, bool row_major = false);
         void flatten(bool row_major = false);
         // 对数据做一些变换

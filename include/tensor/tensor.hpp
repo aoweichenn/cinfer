@@ -85,4 +85,15 @@ namespace cinfer
     };
 }
 
+namespace cinfer
+{
+    template <typename T = float>
+    using sp_tensor = std::shared_ptr<Tensor<T>>;
+
+    using ftensor = Tensor<float>;
+    using sp_ftensor = std::shared_ptr<Tensor<float>>;
+
+    using u8tensor = Tensor<uint8_t>;
+    using sp_u8tensor = std::shared_ptr<Tensor<uint8_t>>;
+}
 #endif //CINFER_TENSOR_TENSOR_HPP

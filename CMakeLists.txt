@@ -44,7 +44,9 @@ add_library(cinfer_static STATIC
         source/runtime/cnnx/ir/graph.cpp
         include/tensor/tensor.hpp
         include/tensor/utils.hpp
-        source/tensor/tensor.cpp)
+        source/tensor/tensor.cpp
+        source/tensor/utils.cpp
+        source/tensor/utils.hpp)
 # 为静态库链接依赖项：
 target_link_libraries(cinfer_static PRIVATE
         pthread  # POSIX线程库
@@ -76,7 +78,9 @@ add_executable(cinfer main.cpp
         source/runtime/cnnx/ir/graph.cpp
         include/tensor/tensor.hpp
         include/tensor/utils.hpp
-        source/tensor/tensor.cpp)
+        source/tensor/tensor.cpp
+        source/tensor/utils.cpp
+        source/tensor/utils.hpp)
 # 为可执行文件链接依赖项（与静态库相同）
 target_link_libraries(cinfer PRIVATE
         pthread

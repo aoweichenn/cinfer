@@ -7,7 +7,6 @@
 
 #include <glog/logging.h>
 #include <armadillo>
-#include <memory>
 #include <vector>
 
 namespace cinfer
@@ -36,14 +35,14 @@ namespace cinfer
         explicit Tensor(T* raw_tensor_ptr, const std::vector<uint32_t>& shapes);
 
     public:
-        uint32_t rows() const;
-        uint32_t cols() const;
-        uint32_t channels() const;
-        size_t elements_size() const;
-        size_t planes_size() const;
-        bool empty() const;
+        [[nodiscard]] uint32_t rows() const;
+        [[nodiscard]] uint32_t cols() const;
+        [[nodiscard]] uint32_t channels() const;
+        [[nodiscard]] size_t elements_size() const;
+        [[nodiscard]] size_t planes_size() const;
+        [[nodiscard]] bool empty() const;
         T& index(uint32_t offset);
-        const T index(uint32_t offset) const;
+        const T& index(uint32_t offset) const;
         std::vector<T> shapes() const;
         const std::vector<T>& raw_tensor_shapes() const;
         arma::cube<T>& data() const;

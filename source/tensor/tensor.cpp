@@ -223,7 +223,7 @@ namespace cinfer
     }
 
     template <typename T>
-    const T Tensor<T>::index(uint32_t offset) const
+    const T& Tensor<T>::index(uint32_t offset) const
     {
         CHECK(offset < this->tensor_data_.size()) << "Tensor index out of bounds.";
         return this->tensor_data_.at(offset);
@@ -479,7 +479,7 @@ namespace cinfer
         std::uniform_int_distribution<uint32_t> dist(min, max);
         for (size_t i = 0; i < this->elements_size(); ++i)
         {
-            this->index(i) = dist(mt);
+            this->index(i) = static_cast<int32_t>(dist(mt));
         }
     }
 
@@ -513,13 +513,13 @@ namespace cinfer
 
 
     template <typename T>
-    void Tensor<T>::reshape(const std::vector<uint32_t>& shapes, bool row_major)
+    void Tensor<T>::reshape(const std::vector<uint32_t>& shapes, const bool row_major)
     {
         CHECK(!this->empty()) << "The data area of the tensor is empty.";
         CHECK(!shapes.empty()) << "The shapes are empty.";
         const size_t origin_size = this->elements_size();
         const size_t current_size = std::accumulate(shapes.begin(), shapes.end(), static_cast<size_t>(1),
-                                                    std::multiplies<size_t>());
+                                                    std::multiplies<>());
         CHECK(shapes.size() <= 3);
         CHECK(current_size == origin_size);
         if (row_major)
